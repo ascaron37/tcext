@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <DUT Name="VisuElementProperties" Id="{ec69662b-80b7-434a-9c8b-f8e8ff7db4f7}">
+    <Declaration><![CDATA[TYPE VisuElementProperties :
+STRUCT
+  color: DWORD;
+  invisible: BOOL;
+  int_value: INT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

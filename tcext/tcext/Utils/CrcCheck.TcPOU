@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <POU Name="CrcCheck" Id="{9fc5645c-e006-4563-b398-2c69432ab599}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CrcCheck
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+  act_crc: UINT;
+  previous_crc: UINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="data_changed" Id="{859b12b2-30a4-47dc-8f26-7933132f402d}">
+      <Declaration><![CDATA[METHOD data_changed : BOOL
+VAR_INPUT
+  data_ptr: POINTER TO BYTE;
+  data_size: UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[act_crc := F_DATA_TO_CRC16_CCITT(data_ptr, data_size, 0);
+data_changed := act_crc <> previous_crc;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{a26de202-1f26-4a50-a38f-d7c60aa4dfe1}">
+      <Declaration><![CDATA[METHOD reset
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[previous_crc := act_crc;]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

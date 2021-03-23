@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <POU Name="LockingRelay" Id="{12380fa4-bd87-480a-ae60-f4eb89316508}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK LockingRelay EXTENDS Object
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+  _clk: BOOL;
+  r_clk: R_TRIG;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Property Name="clk" Id="{ee0c0626-704a-4f08-bf99-09c57a59d5fa}">
+      <Declaration><![CDATA[PROPERTY clk : BOOL]]></Declaration>
+      <Set Name="Set" Id="{2d5ae0a2-c8df-41a8-ac5f-f5614d1e5fe9}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[r_clk(CLK:=clk);
+IF r_clk.Q THEN
+  _clk := TRUE;
+ELSIF NOT clk THEN
+  _clk := FALSE;
+END_IF]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="q" Id="{2c523e14-85e7-4951-9898-90dfbbe8beda}">
+      <Declaration><![CDATA[PROPERTY q : BOOL]]></Declaration>
+      <Get Name="Get" Id="{60e82940-38ed-4c54-8bea-f925007193ff}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[q := _clk;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="reset" Id="{fb134051-2622-4fb0-84e8-0daf166880b1}">
+      <Declaration><![CDATA[PROPERTY reset : BOOL]]></Declaration>
+      <Set Name="Set" Id="{df089b9f-542a-4a11-b9fc-af2f7e455db2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF reset THEN
+  _clk := FALSE;
+END_IF]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <LineIds Name="LockingRelay">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="LockingRelay.clk.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="1" />
+      <LineId Id="8" Count="1" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="LockingRelay.q.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="LockingRelay.reset.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,474 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+  <POU Name="FileMemory_Test" Id="{727abce0-e53b-4d60-9e58-9cda7ebb2f5f}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'call_after_init'}
+FUNCTION_BLOCK FileMemory_Test EXTENDS TcUnit.FB_TestSuite
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//createFile();
+set_path();
+write_file();
+read_non_existent_file();
+read_existent_file();
+write_and_read_simultaneously();
+read_twice();
+write_twice();
+auto_write();
+auto_write_time();]]></ST>
+    </Implementation>
+    <Method Name="auto_write" Id="{b8e1d36d-a1df-441a-b205-450163bc8728}">
+      <Declaration><![CDATA[METHOD auto_write
+VAR
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+VAR_INST
+  file_memory: FileMemory;
+  test_data: INT;
+  test_data_first_read: INT;
+  test_data_second_read: INT;
+  counter: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('auto_write');
+
+file_memory.path := 'c:\auto_write.be';
+file_memory.auto_write(
+  data_ptr:=ADR(test_data),
+  data_size:=SIZEOF(test_data),
+  done=>done,
+  error_id=>error_id);
+
+CASE counter OF
+0:
+  test_data := 135;
+  counter := counter + 10;
+10:
+  IF done THEN
+    counter := counter + 10;
+  END_IF
+20:
+  file_memory.read(
+    start:=TRUE,
+    data_ptr:=ADR(test_data_first_read),
+    data_size:=SIZEOF(test_data_first_read),
+    done=>done,
+    error_id=>error_id);
+  IF done THEN
+    counter := counter + 10;
+  END_IF
+30:
+  file_memory.read(
+    start:=FALSE,
+    data_ptr:=0,
+    data_size:=0);
+  counter := counter + 10;
+40:
+  test_data := 246;
+  counter := counter + 10;
+50:
+  IF done THEN
+    counter := counter + 10;
+  END_IF
+60:
+  file_memory.read(
+    start:=TRUE,
+    data_ptr:=ADR(test_data_second_read),
+    data_size:=SIZEOF(test_data_second_read),
+    done=>done,
+    error_id=>error_id);
+  IF done THEN
+    AssertEquals_INT(135, test_data_first_read, 'Wrong values from auto_write file.');
+    AssertEquals_INT(246, test_data_second_read, 'Wrong values from auto_write file.');
+  
+    TEST_FINISHED();
+  END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="auto_write_time" Id="{1ca268e1-07f4-48c8-90d5-7d235ffc267b}">
+      <Declaration><![CDATA[METHOD auto_write_time
+VAR
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+VAR_INST
+  file_memory: FileMemory;
+  test_data: INT;
+  test_data_first_read: INT;
+  test_data_second_read: INT;
+  counter: INT;
+  test_timer: TON;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('auto_write_time');
+
+file_memory.path := 'c:\auto_write_time.be';
+file_memory.auto_write_time(
+  data_ptr:=ADR(test_data),
+  data_size:=SIZEOF(test_data),
+  period:=T#2S,
+  done=>done,
+  error_id=>error_id);
+test_timer(PT:=T#2.2S);
+
+CASE counter OF
+0:
+  test_data := 135;
+  counter := counter + 10;
+10:
+  test_timer(IN:=TRUE);
+  IF test_timer.q THEN
+    test_timer(IN:=FALSE);
+    counter := counter + 10;
+  END_IF
+20:
+  file_memory.read(
+    start:=TRUE,
+    data_ptr:=ADR(test_data_first_read),
+    data_size:=SIZEOF(test_data_first_read),
+    done=>done,
+    error_id=>error_id);
+  IF done THEN
+    counter := counter + 10;
+  END_IF
+30:
+  file_memory.read(
+    start:=FALSE,
+    data_ptr:=0,
+    data_size:=0);
+  counter := counter + 10;
+40:
+  test_data := 246;
+  counter := counter + 10;
+50:
+  test_timer(IN:=TRUE);
+  IF test_timer.q THEN
+    test_timer(IN:=FALSE);
+    counter := counter + 10;
+  END_IF
+60:
+  file_memory.read(
+    start:=TRUE,
+    data_ptr:=ADR(test_data_second_read),
+    data_size:=SIZEOF(test_data_second_read),
+    done=>done,
+    error_id=>error_id);
+  IF done THEN
+    AssertEquals_INT(135, test_data_first_read, 'Wrong values from auto_write file.');
+    AssertEquals_INT(246, test_data_second_read, 'Wrong values from auto_write file.');
+  
+    TEST_FINISHED();
+  END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="createFile" Id="{1ec36c1e-79f1-46a0-b306-b4329038ed95}">
+      <Declaration><![CDATA[METHOD PRIVATE createFile
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('create_file');
+
+TEST_FINISHED();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="read_existent_file" Id="{39c6011b-d857-45c6-be77-fe69df1049dc}">
+      <Declaration><![CDATA[METHOD read_existent_file
+VAR
+  done: BOOL;
+  error_id: UDINT;
+  
+  expected: INT;
+END_VAR
+VAR_INST
+  file_memory: FileMemory;
+  test_data: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('read_existent_file');
+
+IF IS_TEST_FINISHED('write_file') THEN
+  file_memory.path := 'c:\test_file.be';
+  
+  file_memory.read(
+    start:=TRUE,
+    data_ptr:=ADR(test_data),
+    data_size:=SIZEOF(test_data),
+    done=>done,
+    error_id=>error_id);
+  
+  IF done THEN
+    expected := 37;
+    AssertEquals_INT(expected, test_data, CONCAT('Wrong value. Check if file exists and contains 37. Error: ', TO_STRING(error_id)));
+    
+    TEST_FINISHED();
+  END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="read_non_existent_file" Id="{af0506cb-e4d3-4d8a-b52b-bb49962f63cd}">
+      <Declaration><![CDATA[METHOD PRIVATE read_non_existent_file
+VAR
+  done: BOOL;
+  error_id: UDINT;
+  
+  test_data: INT;
+END_VAR
+VAR_INST
+    read_file: FileMemory;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('read_non_existent_file');
+
+read_file.path := 'c:\non_existent_file.be';
+
+read_file.read(
+  start:=TRUE,
+  data_ptr:=ADR(test_data),
+  data_size:=SIZEOF(test_data),
+  done=>done,
+  error_id=>error_id);
+
+IF done THEN
+  AssertTrue((error_id <> 0), 'No error although file non existent.');
+  
+  TEST_FINISHED();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="read_twice" Id="{3c9138aa-76ad-4c5d-a7b1-09c060b565b5}">
+      <Declaration><![CDATA[METHOD read_twice
+VAR
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+VAR_INST
+  file_memory: FileMemory;
+  test_data_first_read: INT;
+  test_data_second_read: INT;
+  counter: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('read_twice');
+
+IF IS_TEST_FINISHED('write_file') AND IS_TEST_FINISHED('read_existent_file') THEN
+  file_memory.path := 'c:\test_file.be';
+  
+  CASE counter OF
+  0:
+    file_memory.read(
+      start:=TRUE,
+      data_ptr:=ADR(test_data_first_read),
+      data_size:=SIZEOF(test_data_first_read),
+      done=>done,
+      error_id=>error_id);
+    IF done THEN
+      counter := 10;
+		END_IF
+  10:
+    file_memory.read(
+      start:=FALSE,
+      data_ptr:=0,
+      data_size:=0);
+    counter := 20;
+  20:
+    file_memory.read(
+      start:=TRUE,
+      data_ptr:=ADR(test_data_second_read),
+      data_size:=SIZEOF(test_data_second_read),
+      done=>done,
+      error_id=>error_id);
+    IF done THEN
+      AssertEquals_INT(test_data_first_read, test_data_second_read, 'Wrong values from same file.');
+    
+      TEST_FINISHED();
+		END_IF
+	END_CASE
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="set_path" Id="{618ecfc5-b3b0-4c58-a653-a0f15f8a01ba}">
+      <Declaration><![CDATA[METHOD set_path
+VAR
+  actual: STRING;
+  expected: STRING;
+  
+  file_memory: FileMemory;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('set_path');
+
+expected := 'c:\test.be';
+file_memory.path := expected;
+actual := file_memory.path;
+
+AssertEquals_STRING(expected, actual, 'Path is broken.');
+
+TEST_FINISHED();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="write_and_read_simultaneously" Id="{828dd98f-7b57-4c3c-8bc4-2b7594843694}">
+      <Declaration><![CDATA[METHOD write_and_read_simultaneously
+VAR
+  done_write: BOOL;
+  error_id_write: UDINT;
+  done_read: BOOL;
+  error_id_read: UDINT;
+END_VAR
+VAR_INST
+  file_memory: FileMemory;
+  test_data_write: INT;
+  test_data_read: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('write_and_read_simultaneously');
+
+file_memory.path := 'c:\test_file_2.be';
+
+test_data_write := 123;
+file_memory.write(
+  start:=TRUE , 
+  data_ptr:=ADR(test_data_write), 
+  data_size:=SIZEOF(test_data_write), 
+  done=>done_write, 
+  error_id=>error_id_write);
+file_memory.read(
+  start:=TRUE , 
+  data_ptr:=ADR(test_data_read), 
+  data_size:=SIZEOF(test_data_read), 
+  done=>done_read, 
+  error_id=>error_id_read);
+  
+IF done_write AND done_read THEN
+  AssertTrue((error_id_write = 0), CONCAT('Fehler beim simultanen Schreiben. Error: ', TO_STRING(error_id_write)));
+  AssertTrue((error_id_read = 0), CONCAT('Fehler beim simultanen Lesen. Error: ', TO_STRING(error_id_read)));
+  AssertEquals_INT(test_data_write, test_data_read, 'Geschriebene und gelesenen Daten ungleich.');
+  
+  TEST_FINISHED();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="write_file" Id="{1244fa18-6737-4302-8eea-b27bdd55d7f1}">
+      <Declaration><![CDATA[METHOD write_file
+VAR
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+VAR_INST
+  file_memory: FileMemory;
+  test_data: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('write_file');
+
+file_memory.path := 'c:\test_file.be';
+
+test_data := 37;
+
+file_memory.write(
+  start:=TRUE,
+  data_ptr:=ADR(test_data),
+  data_size:=SIZEOF(test_data),
+  done=>done,
+  error_id=>error_id);
+  
+IF done THEN
+  AssertEquals_UDINT(0, error_id, CONCAT('File could not be written. Error: ', TO_STRING(error_id)));
+  
+  TEST_FINISHED();
+END_IF
+  ]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="write_twice" Id="{77d101fc-cabd-4c3c-8eb4-5534011cfd81}">
+      <Declaration><![CDATA[METHOD write_twice
+VAR
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+VAR_INST
+  file_memory: FileMemory;
+  test_data_first_write: INT;
+  test_data_second_write: INT;
+  test_data_first_read: INT;
+  test_data_second_read: INT;
+  counter: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('write_twice');
+
+file_memory.path := 'c:\write_twice.be';
+
+test_data_first_write := 123;
+test_data_second_write := 456;
+CASE counter OF
+0:
+  file_memory.write(
+    start:=TRUE,
+    data_ptr:=ADR(test_data_first_write),
+    data_size:=SIZEOF(test_data_first_write),
+    done=>done,
+    error_id=>error_id);
+  IF done THEN
+    counter := 10;
+  END_IF
+10:
+  file_memory.write(
+    start:=FALSE,
+    data_ptr:=0,
+    data_size:=0);
+  counter := 20;
+20:
+  file_memory.read(
+    start:=TRUE,
+    data_ptr:=ADR(test_data_first_read),
+    data_size:=SIZEOF(test_data_first_read),
+    done=>done,
+    error_id=>error_id);
+  IF done THEN
+    counter := 30;
+  END_IF
+30:
+  file_memory.read(
+    start:=FALSE,
+    data_ptr:=0,
+    data_size:=0);
+  counter := 40;
+40:
+  file_memory.write(
+    start:=TRUE,
+    data_ptr:=ADR(test_data_second_write),
+    data_size:=SIZEOF(test_data_second_write),
+    done=>done,
+    error_id=>error_id);
+  IF done THEN
+    counter := 50;
+  END_IF
+50:
+  file_memory.write(
+    start:=FALSE,
+    data_ptr:=0,
+    data_size:=0);
+  counter := 60;
+60:
+  file_memory.read(
+    start:=TRUE,
+    data_ptr:=ADR(test_data_second_read),
+    data_size:=SIZEOF(test_data_second_read),
+    done=>done,
+    error_id=>error_id);
+  IF done THEN
+    AssertEquals_INT(test_data_first_write, test_data_first_read, 'Wrong values from same file.');
+    AssertEquals_INT(test_data_second_write, test_data_second_read, 'Wrong values from same file.');
+  
+    TEST_FINISHED();
+  END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

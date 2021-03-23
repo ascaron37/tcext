@@ -1,0 +1,459 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <POU Name="FileMemory" Id="{e4122ad2-71e6-464b-a62d-4f143cb81e6f}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FileMemory EXTENDS Object
+VAR
+  file_path: T_MaxString;
+  
+  fb_file_open: FB_FileOpen;
+  fb_file_close: FB_FileClose;
+  fb_file_read: FB_FileRead;
+  fb_file_write: FB_FileWrite;
+  
+  t_timeout_read: TIME := T#2S;
+  t_timeout_write: TIME := T#2S;
+  
+  lock_action: FileMemoryAction;
+  
+  write_period_timer: TP;
+  crc_check: CrcCheck;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="auto_write" Id="{1c20401e-1fb5-4e81-bedd-3bd77420f66e}">
+      <Declaration><![CDATA[METHOD auto_write
+VAR_INPUT
+  data_ptr: POINTER TO BYTE;
+  data_size: UDINT;
+END_VAR
+VAR_OUTPUT
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+VAR
+  crc_changed: BOOL;
+END_VAR
+VAR_INST
+  act_crc: UINT;
+  previous_crc: UINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[write(
+  start:=crc_check.data_changed(data_ptr, data_size), 
+  data_ptr:=data_ptr, 
+  data_size:=data_size,
+  done=>done,
+  error_id=>error_id);
+  
+IF done THEN
+  crc_check.reset();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="auto_write_time" Id="{12cdbeff-954c-453d-a02b-f117da9a6869}">
+      <Declaration><![CDATA[METHOD auto_write_time
+VAR_INPUT
+  data_ptr: POINTER TO BYTE;
+  data_size: UDINT;
+  period: TIME;
+END_VAR
+VAR_OUTPUT
+  done: BOOL;
+  error_id: UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[write_period_timer(IN:=NOT write_period_timer.Q, PT:=period);
+
+write(
+  start:=NOT write_period_timer.q AND crc_check.data_changed(data_ptr, data_size), 
+  data_ptr:=data_ptr, 
+  data_size:=data_size,
+  done=>done,
+  error_id=>error_id);
+  
+IF NOT write_period_timer.q THEN
+  crc_check.reset();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="file_close" Id="{7fcd06b4-6238-468c-8d15-ed3ce3a51822}">
+      <Declaration><![CDATA[METHOD file_close
+VAR_INPUT
+  start: BOOL;
+  file_handler: UINT;
+END_VAR
+VAR_OUTPUT
+  done: BOOL;
+  error_id: UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fb_file_close(
+  bExecute:=start,
+  hFile:=file_handler);
+
+IF NOT fb_file_close.bBusy THEN
+  done := TRUE;
+  IF fb_file_close.bError THEN
+    error_id := fb_file_close.nErrId;
+  END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="file_open" Id="{5d150953-c5cd-40f1-8737-104d7420ff7c}">
+      <Declaration><![CDATA[METHOD PRIVATE file_open: UINT
+VAR_INPUT
+  start: BOOL;
+  mode: DWORD;
+END_VAR
+VAR_OUTPUT
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fb_file_open(
+  bExecute:=start,
+  sPathName:=path,
+  nMode:=mode);
+
+file_open := 0;
+IF NOT fb_file_open.bBusy THEN
+  done := TRUE;
+  IF fb_file_open.bError THEN
+    error_id := fb_file_open.nErrId;
+  ELSE
+    file_open := fb_file_open.hFile;
+  END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="file_read" Id="{f00a9296-0b53-47bc-a639-32a864266bf5}">
+      <Declaration><![CDATA[METHOD PRIVATE file_read
+VAR_INPUT
+  start: BOOL;
+  file_handler: UINT;
+  data_ptr: POINTER TO BYTE;
+  data_size: UDINT;
+END_VAR
+VAR_OUTPUT
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fb_file_read(
+  bExecute:=start,
+  hFile:=file_handler,
+  pReadBuff:=data_ptr,
+  cbReadLen:=data_size);
+
+IF NOT fb_file_read.bBusy THEN
+  done := TRUE;
+  IF fb_file_read.bError THEN
+    error_id := fb_file_read.nErrId;
+  END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="file_write" Id="{c5e3692b-e608-44f5-b7be-a91d39665e24}">
+      <Declaration><![CDATA[METHOD PRIVATE file_write
+VAR_INPUT
+  start: BOOL;
+  file_handler: UINT;
+  data_ptr: POINTER TO BYTE;
+  data_size: UDINT;
+END_VAR
+VAR_OUTPUT
+  done: BOOL;
+  error_id: UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fb_file_write(
+  bExecute:=start,
+  hFile:=file_handler,
+  pWriteBuff:=data_ptr,
+  cbWriteLen:=data_size);
+
+IF NOT fb_file_write.bBusy THEN
+  done := TRUE;
+  IF fb_file_write.bError THEN
+    error_id := fb_file_write.nErrId;
+  END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="lock" Id="{3b9c6d3c-3ebe-49c4-8a94-41ad9ccbb777}">
+      <Declaration><![CDATA[METHOD PRIVATE lock
+VAR_INPUT
+  lock_action: FileMemoryAction;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.lock_action := lock_action;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="locked" Id="{78529a96-7b87-4b9e-bb6f-da242789b5f3}">
+      <Declaration><![CDATA[METHOD PRIVATE locked : BOOL
+VAR_INPUT
+  lock_action: FileMemoryAction;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[locked := (THIS^.lock_action <> FileMemoryAction.UNLOCKED) AND (THIS^.lock_action <> lock_action);]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="mode_read" Id="{53c862d1-f25e-44d4-87e8-9bdb4dbfa7b2}">
+      <Declaration><![CDATA[PROPERTY PRIVATE mode_read : DWORD]]></Declaration>
+      <Get Name="Get" Id="{11b7578a-5ada-4411-ab34-d3fabee53aab}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[mode_read := FOPEN_MODEREAD OR FOPEN_MODEBINARY;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="mode_write" Id="{47b2277c-8bae-4854-8d1c-940e1af32287}">
+      <Declaration><![CDATA[PROPERTY PRIVATE mode_write : DWORD]]></Declaration>
+      <Get Name="Get" Id="{061a9dfb-6307-48d5-b04c-18b6ba33b846}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[mode_write := FOPEN_MODEWRITE OR FOPEN_MODEBINARY;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="path" Id="{2066a749-4ab3-4a33-bb1c-841e8288bc25}">
+      <Declaration><![CDATA[PROPERTY path : T_MaxString]]></Declaration>
+      <Get Name="Get" Id="{eaf6e1a8-3d98-40bc-8c0a-4bb51a4d0b9e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[path := file_path;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{5d51a3ba-35f4-4652-aa5d-725527909ce8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[file_path := path;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="read" Id="{94d1913a-da30-4334-9cd6-1f8fee84b225}">
+      <Declaration><![CDATA[METHOD read
+VAR_INPUT
+  start: BOOL;
+  data_ptr: POINTER TO BYTE;
+  data_size: UDINT;
+END_VAR
+VAR_OUTPUT
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+VAR
+  next_state: BOOL;
+  done_temp: BOOL;
+END_VAR
+VAR_INST
+  file_handler: UINT;
+  lr_start: LockingRelay;
+  done_mem: BOOL;
+  error_id_mem: UDINT;
+  timeout_timer: TON;
+  timeout_start: BOOL;
+  
+  open_transition: TransitionController;
+  read_transition: TransitionController;
+  close_transition: TransitionController;
+  
+  finished: BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[lr_start.clk := start;
+timeout_timer(IN:=timeout_start, PT:=timeout_read);
+
+IF lr_start.q THEN
+  done_mem := FALSE;
+  error_id_mem := 0;
+  IF NOT locked(FileMemoryAction.READ) THEN
+    lr_start.reset := TRUE;
+    timeout_start := TRUE;
+    reset_file_fbs();
+    lock(FileMemoryAction.READ);
+  END_IF
+END_IF
+
+open_transition.fire(execute:=timeout_start);
+file_handler := file_open(start:=open_transition.execute_trigger, mode:=mode_read, 
+  done=>open_transition.done, error_id=>open_transition.error_id);
+
+read_transition.fire(execute:=open_transition.transition);
+file_read(start:=read_transition.execute_trigger, file_handler:=file_handler, data_ptr:=data_ptr, data_size:=data_size, 
+  done=>read_transition.done, error_id=>read_transition.error_id);
+
+close_transition.fire(execute:=read_transition.transition);
+file_close(start:=close_transition.execute_trigger, file_handler:=file_handler, 
+  done=>close_transition.done, error_id=>close_transition.error_id);
+finished := close_transition.transition;
+
+IF finished OR timeout_timer.Q THEN
+  done_mem := TRUE;
+  timeout_start := FALSE;
+  unlock();
+  IF timeout_timer.Q THEN
+    error_id_mem := 16#010000;
+  END_IF
+END_IF
+
+done := done_mem;
+error_id := error_id_mem;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset_file_fbs" Id="{5bdda849-7a90-478d-9c36-6821dc909f25}">
+      <Declaration><![CDATA[METHOD PRIVATE reset_file_fbs]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[file_open(
+  start:=FALSE,
+  mode:=0);
+file_write(
+  start:=FALSE,
+  file_handler:=0,
+  data_ptr:=0,
+  data_size:=0);
+file_read(
+    start:=FALSE,
+    file_handler:=0,
+    data_ptr:=0,
+    data_size:=0);
+// it looks like fb_file_close needs to be called at least once after successfully
+// closing a file before starting it again (at least with version 4022.25)
+file_close(
+  start:=FALSE,
+  file_handler:=0);]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="timeout_read" Id="{8e9bf15c-642d-45f7-99fe-2d50269003a6}">
+      <Declaration><![CDATA[PROPERTY timeout_read : TIME]]></Declaration>
+      <Get Name="Get" Id="{4899f3e5-c680-4ce5-b236-ef6a63225ed3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[timeout_read := t_timeout_read;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{279473f3-bde7-471f-a2cf-d62b7c1a911d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[t_timeout_read := timeout_read;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="timeout_write" Id="{520da075-06d3-4db4-8179-fb005b2efe90}">
+      <Declaration><![CDATA[PROPERTY timeout_write : TIME]]></Declaration>
+      <Get Name="Get" Id="{a687a0a9-f6ed-462c-ad0c-da4a4ab5ac62}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[timeout_write := t_timeout_write;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{83b653f9-bff7-4767-967b-8be69ce5c8bd}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[t_timeout_write := timeout_write;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="unlock" Id="{c65f5d66-7448-469c-8471-f91fdeb08ca3}">
+      <Declaration><![CDATA[METHOD PRIVATE unlock]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[lock(FileMemoryAction.UNLOCKED);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="write" Id="{7f89e6d5-f770-4e79-ba9b-7a808aca01be}">
+      <Declaration><![CDATA[METHOD write
+VAR_INPUT
+  start: BOOL;
+  data_ptr: POINTER TO BYTE;
+  data_size: UDINT;
+END_VAR
+VAR_OUTPUT
+  done: BOOL;
+  error_id: UDINT;
+END_VAR
+VAR
+  next_state: BOOL;
+END_VAR
+VAR_INST
+  file_handler: UINT;
+  lr_start: LockingRelay;
+  done_mem: BOOL;
+  error_id_mem: UDINT;
+  counter: INT;
+  timeout_timer: TON;
+  timeout_start: BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[lr_start.clk := start;
+timeout_timer(IN:=timeout_start, PT:=timeout_write);
+IF timeout_timer.Q THEN
+  counter := -1;
+  error_id_mem := 16#010000;
+END_IF
+
+CASE counter OF
+0:
+  done_mem := TRUE;
+  IF lr_start.q THEN
+    lr_start.reset := TRUE;
+    done_mem := FALSE;
+    error_id_mem := 0;
+    counter := counter + 10;
+  END_IF
+10:
+  IF NOT locked(FileMemoryAction.WRITE) THEN
+    timeout_start := FALSE;
+    reset_file_fbs();
+    lock(FileMemoryAction.WRITE);
+    counter := counter + 10;
+  END_IF
+20:
+  file_handler := file_open(start:=TRUE, mode:=mode_write, done=>next_state, error_id=>error_id_mem);
+30:
+  file_open(start:=FALSE, mode:=0, done=>next_state);
+40:
+  file_write(start:=TRUE, file_handler:=file_handler, data_ptr:=data_ptr, data_size:=data_size, 
+    done=>next_state, error_id=>error_id_mem);
+50:
+  file_write(start:=FALSE, file_handler:=0, data_ptr:=0, data_size:=0, done=>next_state);
+60:
+  file_close(start:=TRUE, file_handler:=file_handler, done=>next_state, error_id=>error_id_mem);
+70:
+  file_close(start:=FALSE, file_handler:=0, done=>next_state);
+ELSE
+  timeout_start := FALSE;
+  counter := 0;
+  unlock();
+END_CASE
+IF next_state AND (error_id_mem <> 0) THEN
+  counter := -1;
+ELSIF next_state THEN
+  counter := counter + 10;
+END_IF
+
+done := done_mem;
+error_id := error_id_mem;]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

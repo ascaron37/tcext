@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="Object" Id="{1e66cee1-d60b-4e6a-8a9b-a522199e7de9}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'reflection'}
+FUNCTION_BLOCK Object
+VAR_OUTPUT 
+  busy: BOOL;
+	done: BOOL;
+  ready: BOOL;
+//	error: BOOL;
+  error_id: UDINT;
+END_VAR
+VAR
+  {attribute 'instance-path'}
+  {attribute 'noinit'}
+  fb_id: STRING(255);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="Object">
+      <LineId Id="67" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
