@@ -10,6 +10,7 @@ VAR
   localtime: FB_LocalSystemTime := (bEnable:=TRUE);
   actSystemTime: TIMESTRUCT;
   event_history_counter: INT;
+  disable_ads_output: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -60,18 +61,36 @@ VAR_INPUT
 END_VAR
 VAR
   mask: DWORD;
+  prefix: STRING(12);
+  message: STRING(255);
+  event_pointer: POINTER TO Event;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[CASE level OF
+        <ST><![CDATA[IF disable_ads_output THEN
+  RETURN;
+END_IF
+
+CASE level OF
 EventLevel.INFO:
-  mask := ADSLOG_MSGTYPE_HINT AND ADSLOG_MSGTYPE_LOG;
+  mask := ADSLOG_MSGTYPE_HINT OR ADSLOG_MSGTYPE_LOG;
+  prefix := ' | Info: ';
 EventLevel.WARNING:
-  mask := ADSLOG_MSGTYPE_WARN AND ADSLOG_MSGTYPE_LOG;
+  mask := ADSLOG_MSGTYPE_WARN OR ADSLOG_MSGTYPE_LOG;
+  prefix := ' | Warnung: ';
 EventLevel.ERROR:
-  mask := ADSLOG_MSGTYPE_ERROR AND ADSLOG_MSGTYPE_LOG;
+  mask := ADSLOG_MSGTYPE_ERROR OR ADSLOG_MSGTYPE_LOG;
+  prefix := ' | Fehler: ';
+ELSE
+  mask := ADSLOG_MSGTYPE_HINT OR ADSLOG_MSGTYPE_LOG;
+  prefix := ' | Info: ';
 END_CASE
 
-ADSLOGSTR(mask, GVL_EventLogger.event_addresses[id]^.message, '');]]></ST>
+event_pointer := GVL_EventLogger.event_addresses[id];
+
+message := CONCAT(prefix, event_pointer^.message);
+//message := CONCAT(event_pointer^.instance_path, message);
+
+ADSLOGSTR(mask, message, '');]]></ST>
       </Implementation>
     </Method>
     <Method Name="clear_alarm" Id="{07a3255c-8c06-4ac3-9bc3-7cc05616380c}">
@@ -140,10 +159,12 @@ END_FOR]]></ST>
     <Method Name="run" Id="{8739a071-bf84-4818-9cb8-125145dee33b}">
       <Declaration><![CDATA[METHOD run
 VAR_INPUT
+  disable_ads_output: BOOL; // for testing purposes
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[localtime();]]></ST>
+        <ST><![CDATA[localtime();
+THIS^.disable_ads_output := disable_ads_output;]]></ST>
       </Implementation>
     </Method>
     <Property Name="time_valid" Id="{97759346-09f2-489b-abe8-e35197fe4275}">
