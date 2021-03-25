@@ -366,6 +366,7 @@ END_VAR]]></Declaration>
         <ST><![CDATA[TEST('write_file');
 
 file_memory.path := 'c:\test_file.be';
+file_memory.path := 'C:\Users\maxim\workspace\test.log';
 
 test_data := 37;
 

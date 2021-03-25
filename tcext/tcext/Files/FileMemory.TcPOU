@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
   <POU Name="FileMemory" Id="{e4122ad2-71e6-464b-a62d-4f143cb81e6f}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FileMemory EXTENDS Object
 VAR
@@ -286,6 +286,19 @@ IF lr_start.q THEN
     lock(FileMemoryAction.READ);
   END_IF
 END_IF
+IF finished OR timeout_timer.Q THEN
+  done_mem := TRUE;
+  timeout_start := FALSE;
+  unlock();
+  IF timeout_timer.Q THEN
+    error_id_mem := 16#010000;
+  END_IF
+END_IF
+IF done_mem THEN
+  done := done_mem;
+  error_id := error_id_mem;
+  RETURN;
+END_IF
 
 open_transition.fire(execute:=timeout_start);
 file_handler := file_open(start:=open_transition.execute_trigger, mode:=mode_read, 
@@ -299,15 +312,6 @@ close_transition.fire(execute:=read_transition.transition);
 file_close(start:=close_transition.execute_trigger, file_handler:=file_handler, 
   done=>close_transition.done, error_id=>close_transition.error_id);
 finished := close_transition.transition;
-
-IF finished OR timeout_timer.Q THEN
-  done_mem := TRUE;
-  timeout_start := FALSE;
-  unlock();
-  IF timeout_timer.Q THEN
-    error_id_mem := 16#010000;
-  END_IF
-END_IF
 
 done := done_mem;
 error_id := error_id_mem;]]></ST>
