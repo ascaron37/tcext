@@ -271,47 +271,56 @@ VAR_INST
   close_transition: TransitionController;
   
   finished: BOOL;
+  
+  counter: INT;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[lr_start.clk := start;
 timeout_timer(IN:=timeout_start, PT:=timeout_read);
+IF timeout_timer.Q THEN
+  counter := -1;
+  error_id_mem := 16#010000;
+END_IF
 
-IF lr_start.q THEN
-  done_mem := FALSE;
-  error_id_mem := 0;
-  IF NOT locked(FileMemoryAction.READ) THEN
+CASE counter OF
+0:
+  done_mem := TRUE;
+  IF lr_start.q THEN
     lr_start.reset := TRUE;
-    timeout_start := TRUE;
+    done_mem := FALSE;
+    error_id_mem := 0;
+    counter := counter + 10;
+  END_IF
+10:
+  IF NOT locked(FileMemoryAction.READ) THEN
+    timeout_start := FALSE;
     reset_file_fbs();
     lock(FileMemoryAction.READ);
+    counter := counter + 10;
   END_IF
-END_IF
-IF finished OR timeout_timer.Q THEN
-  done_mem := TRUE;
+20:
+  file_handler := file_open(start:=TRUE, mode:=mode_read, done=>next_state, error_id=>error_id_mem);
+30:
+  file_open(start:=FALSE, mode:=0, done=>next_state);
+40:
+  file_read(start:=TRUE, file_handler:=file_handler, data_ptr:=data_ptr, data_size:=data_size, 
+    done=>next_state, error_id=>error_id_mem);
+50:
+  file_read(start:=FALSE, file_handler:=0, data_ptr:=0, data_size:=0, done=>next_state);
+60:
+  file_close(start:=TRUE, file_handler:=file_handler, done=>next_state, error_id=>error_id_mem);
+70:
+  file_close(start:=FALSE, file_handler:=0, done=>next_state);
+ELSE
   timeout_start := FALSE;
+  counter := 0;
   unlock();
-  IF timeout_timer.Q THEN
-    error_id_mem := 16#010000;
-  END_IF
+END_CASE
+IF next_state AND (error_id_mem <> 0) THEN
+  counter := -1;
+ELSIF next_state THEN
+  counter := counter + 10;
 END_IF
-IF done_mem THEN
-  done := done_mem;
-  error_id := error_id_mem;
-  RETURN;
-END_IF
-
-open_transition.fire(execute:=timeout_start);
-file_handler := file_open(start:=open_transition.execute_trigger, mode:=mode_read, 
-  done=>open_transition.done, error_id=>open_transition.error_id);
-
-read_transition.fire(execute:=open_transition.transition);
-file_read(start:=read_transition.execute_trigger, file_handler:=file_handler, data_ptr:=data_ptr, data_size:=data_size, 
-  done=>read_transition.done, error_id=>read_transition.error_id);
-
-close_transition.fire(execute:=read_transition.transition);
-file_close(start:=close_transition.execute_trigger, file_handler:=file_handler, 
-  done=>close_transition.done, error_id=>close_transition.error_id);
-finished := close_transition.transition;
 
 done := done_mem;
 error_id := error_id_mem;]]></ST>
