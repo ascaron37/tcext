@@ -28,6 +28,8 @@
   <ItemGroup>
     <Folder Include="Files" />
     <Folder Include="GVL" />
+    <Folder Include="Tests\Timer" />
+    <Folder Include="Timer" />
     <Folder Include="Tests" />
     <Folder Include="Tests\Files" />
     <Folder Include="Tests\EventLogger" />
@@ -60,10 +62,22 @@
     <Compile Include="Tests\EventLogger\EventRunner.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Tests\Files\FileMemory_Test.TcPOU">
+    <Compile Include="Tests\Files\TestFileMemory.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Tests\MAIN_TEST.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tests\Timer\TestSignalDutyCycleRecorder.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Timer\GetSystemTimeAsTime.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Timer\SignalTimeRecorder.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Timer\SignalDutyCycleRecorder.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Utils\CrcCheck.TcPOU">

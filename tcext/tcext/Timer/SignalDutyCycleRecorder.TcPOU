@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+  <POU Name="SignalDutyCycleRecorder" Id="{48bf5ea2-5b03-4893-b84f-88aefd604703}" SpecialFunc="None">
+    <Declaration><![CDATA[(*
+Der Soll-Tastgrad in Prozent gibt das Verhaeltnis der Sensorzustaende An zu Aus waehrend einer Aufnahme an.
+*)
+FUNCTION_BLOCK SignalDutyCycleRecorder
+VAR_INPUT
+  signal: BOOL;
+END_VAR
+VAR_OUTPUT
+  recording_finished: BOOL;
+  duty_cycle_ok: BOOL;
+  error: BOOL;
+END_VAR
+VAR
+  _record_delay: TIME := T#1S;
+  _timeout: TIME := T#10S;
+  _set_duty_cycle_in_percent: REAL := 90.0;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="record" Id="{17d22e0b-d957-4eda-a6f5-290b7071cbb8}">
+      <Declaration><![CDATA[METHOD record
+VAR_INPUT
+  execute: BOOL;
+END_VAR
+VAR
+  start_recording: BOOL;
+END_VAR
+VAR_INST
+  t_timeout: TON;
+  f_started_recording: F_TRIG;
+  r_execute: R_TRIG;
+  signal_recorder: SignalTimeRecorder;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[r_execute(CLK:=execute);
+IF r_execute.Q AND NOT error THEN
+  recording_finished := FALSE;
+  signal_recorder.record(execute:=FALSE);
+END_IF
+
+t_timeout(IN:=signal_recorder.started_recording, PT:=timeout);
+IF t_timeout.Q THEN
+  error := TRUE;
+END_IF
+
+start_recording := execute AND NOT error;
+
+signal_recorder.record_delay := record_delay;
+signal_recorder.signal := signal;
+signal_recorder.record(execute:=start_recording);
+
+f_started_recording(CLK:=signal_recorder.started_recording);
+IF f_started_recording.Q THEN
+  recording_finished := TRUE;
+  duty_cycle_ok := signal_recorder.on_ratio * 100.0 >= set_duty_cycle_in_percent AND NOT error;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="record_delay" Id="{5171c9c4-9fcb-48f7-8e1e-b85a424f5f7f}">
+      <Declaration><![CDATA[PROPERTY record_delay : TIME]]></Declaration>
+      <Get Name="Get" Id="{1a34ded8-bb19-4757-b3a8-441ba08ef81a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[record_delay := _record_delay;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{bc1dc4c3-e9a3-4022-8730-c2215b3dfdd7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_record_delay := record_delay;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="reset" Id="{6cd35acf-0480-4475-b692-98cfceac7c54}">
+      <Declaration><![CDATA[METHOD reset
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[error := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="set_duty_cycle_in_percent" Id="{59a723f8-4e5d-4b58-99d8-75b48231e2af}">
+      <Declaration><![CDATA[PROPERTY set_duty_cycle_in_percent : REAL]]></Declaration>
+      <Get Name="Get" Id="{72f77a1e-bd0d-41fd-a8e5-09584dc5aaaf}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[set_duty_cycle_in_percent := _set_duty_cycle_in_percent;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{52f260b8-4373-4d3c-90c0-6759d6003d84}">
+        <Declaration><![CDATA[VAR
+  tastgrad: REAL;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF set_duty_cycle_in_percent < 0 THEN
+  tastgrad := 0.0;
+ELSIF set_duty_cycle_in_percent > 100.0 THEN
+  tastgrad := 100.0;
+ELSE
+  tastgrad := set_duty_cycle_in_percent;
+END_IF
+_set_duty_cycle_in_percent := tastgrad;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="timeout" Id="{20030a2c-9022-4d73-95a0-e81bf217fe2d}">
+      <Declaration><![CDATA[PROPERTY timeout : TIME]]></Declaration>
+      <Get Name="Get" Id="{52fba5ed-1618-4f8f-8ca5-97eb2f417fea}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[timeout := _timeout;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{74e8263c-a815-4593-9243-8ada5819ba9f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_timeout := timeout;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+  </POU>
+</TcPlcObject>

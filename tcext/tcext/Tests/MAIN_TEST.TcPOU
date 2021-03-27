@@ -3,11 +3,14 @@
   <POU Name="MAIN_TEST" Id="{c5a022a8-f196-47f6-9c7f-1db1bc1f3d17}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN_TEST
 VAR
-  FileMemoryTest: FileMemory_Test;
+  test_file_memory: TestFileMemory;
+  test_durchflusssensor: TestSignalDutyCycleRecorder;
+  time_test: TIME;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[TcUnit.RUN();]]></ST>
+      <ST><![CDATA[TcUnit.RUN();
+time_test := TO_TIME(F_GetSystemTime()/10000);]]></ST>
     </Implementation>
   </POU>
 </TcPlcObject>

@@ -1,0 +1,393 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+  <POU Name="TestSignalDutyCycleRecorder" Id="{77135db3-5fd9-4b6d-8836-b7200c741711}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK TestSignalDutyCycleRecorder EXTENDS TcUnit.FB_TestSuite
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[GibtNichtsAusWennNeuErstellt();
+DurchflussIOWenn100ProzentAnImSelbenZyklus();
+DurchflussNIOWenn100ProzentAusImSelbenZyklus();
+DurchflussNIOWenn60zu40ProzentAusInMehrerenZyklen();
+DurchflussIOWenn60zu40ProzentAnInMehrerenZyklen();
+DurchflussAufnahmeMehrmalsDurchfuehren();
+AufnahmeNachTimeoutAbbrechen();
+AufnahmeNachTimeoutAbbrechenUndStoppenIstTrotzdemNIO();
+AufnahmeNachResetEinerFehlerhaftenAufnahme();
+AufnahmeBeruecksichtigtStartverzoegerung();
+// negativer Tastgrad
+// positiver Tastgrad]]></ST>
+    </Implementation>
+    <Method Name="AufnahmeBeruecksichtigtStartverzoegerung" Id="{76852959-6b7c-41b2-9bde-a9aaf4c5136c}">
+      <Declaration><![CDATA[METHOD AufnahmeBeruecksichtigtStartverzoegerung
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+  aufnahmedauer: TIME;
+  t_aufnahmedauer: TON;
+  zaehler: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('AufnahmeBeruecksichtigtStartverzoegerung');
+
+aufnahmedauer := T#1S;
+t_aufnahmedauer(IN:=TRUE, PT:=aufnahmedauer);
+
+sensor.record_delay := T#500MS;
+sensor.signal := t_aufnahmedauer.ET <= T#700MS;
+sensor.set_duty_cycle_in_percent := 50.0;
+
+sensor.record(execute:=NOT t_aufnahmedauer.Q);
+
+IF t_aufnahmedauer.Q THEN
+  AssertTrue(sensor.recording_finished, 'Normaler Ablauf');
+  AssertFalse(sensor.duty_cycle_ok, 'Aufgrund der Startverzoegerung darf der Durchfluss nicht i.O. sein');
+  AssertFalse(sensor.error, 'Kein Fehler');
+  
+  TEST_FINISHED();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AufnahmeNachResetEinerFehlerhaftenAufnahme" Id="{7a0ad050-3fa7-47d3-b4fc-2c6564c17e10}">
+      <Declaration><![CDATA[METHOD AufnahmeNachResetEinerFehlerhaftenAufnahme
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+  timeoutdauer: TIME;
+  zaehler: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('AufnahmeNachResetEinerFehlerhaftenAufnahme');
+
+timeoutdauer := T#1S;
+
+sensor.record_delay := T#0S;
+sensor.signal := TRUE;
+sensor.timeout := timeoutdauer;
+
+CASE zaehler OF
+0:
+  sensor.record(execute:=TRUE);
+  
+  IF sensor.error THEN
+    sensor.record(execute:=FALSE);
+  
+    AssertTrue(sensor.recording_finished, 'Timeout-Fehler, daher ist die Aufnahme beendet');
+    AssertFalse(sensor.duty_cycle_ok, 'Bei Fehler darf der Durchfluss nicht i.O. sein');
+    AssertTrue(sensor.error, 'Timeout-Fehler eingetreten');
+    
+    zaehler := zaehler + 1;
+  END_IF
+1:
+  sensor.reset();
+  AssertFalse(sensor.error, 'Fehler wurde resettet');
+  
+  zaehler := zaehler + 1;
+2:
+  sensor.record(execute:=TRUE);
+  
+  AssertFalse(sensor.recording_finished, 'Timeout-Fehler, daher darf die Aufnahme auch nach einem stopp nicht starten');
+  AssertFalse(sensor.duty_cycle_ok, 'Bei Fehler darf der Durchfluss nicht i.O. sein');
+  AssertFalse(sensor.error, 'Timeout-Fehler eingetreten');
+  
+  zaehler := zaehler + 1;
+3:
+  sensor.record(execute:=FALSE);
+  
+  AssertTrue(sensor.recording_finished, 'Wurde korrekt gestoppt');
+  AssertTrue(sensor.duty_cycle_ok, 'Sollte i.O. sein');
+  AssertFalse(sensor.error, 'Timeout-Fehler eingetreten');
+  
+  TEST_FINISHED();
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AufnahmeNachTimeoutAbbrechen" Id="{f15b98e8-73e8-4c6b-afbd-f8d8b3c93c8f}">
+      <Declaration><![CDATA[METHOD AufnahmeNachTimeoutAbbrechen
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+  timeoutdauer: TIME;
+  t_timeout_vor: TON;
+  t_timeout_nach: TON;
+  zaehler: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('AufnahmeNachTimeoutAbbrechen');
+
+timeoutdauer := T#1S;
+t_timeout_vor(IN:=TRUE, PT:=timeoutdauer-T#100MS);
+t_timeout_nach(IN:=TRUE, PT:=timeoutdauer+T#100MS);
+
+sensor.record_delay := T#0S;
+sensor.timeout := timeoutdauer;
+
+sensor.record(execute:=TRUE);
+
+CASE zaehler OF
+0:  
+  IF t_timeout_vor.Q THEN
+    AssertFalse(sensor.recording_finished, 'Aufnahme laeuft');
+    AssertFalse(sensor.duty_cycle_ok, 'Aufnahme laeuft, daher muss es aus sein');
+    AssertFalse(sensor.error, 'Es darf kein Fehler anliegen');
+    
+    zaehler := zaehler + 1;
+  END_IF
+1:
+  IF t_timeout_nach.Q THEN
+    AssertTrue(sensor.recording_finished, 'Timeout-Fehler, daher ist die Aufnahme beendet');
+    AssertFalse(sensor.duty_cycle_ok, 'Bei Fehler darf der Durchfluss nicht i.O. sein');
+    AssertTrue(sensor.error, 'Timeout-Fehler eingetreten');
+    
+    TEST_FINISHED();
+  END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AufnahmeNachTimeoutAbbrechenUndStoppenIstTrotzdemNIO" Id="{243734a1-6d6c-4b4c-9523-92b4740dd28b}">
+      <Declaration><![CDATA[METHOD AufnahmeNachTimeoutAbbrechenUndStoppenIstTrotzdemNIO
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+  timeoutdauer: TIME;
+  zaehler: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('AufnahmeNachTimeoutAbbrechenUndStoppenIstTrotzdemNIO');
+
+timeoutdauer := T#1S;
+
+sensor.record_delay := T#0S;
+sensor.signal := TRUE;
+sensor.timeout := timeoutdauer;
+
+CASE zaehler OF
+0:
+  sensor.record(execute:=TRUE);
+  
+  IF sensor.error THEN
+    sensor.record(execute:=FALSE);
+  
+    AssertTrue(sensor.recording_finished, 'Timeout-Fehler, daher ist die Aufnahme beendet');
+    AssertFalse(sensor.duty_cycle_ok, 'Bei Fehler darf der Durchfluss nicht i.O. sein');
+    AssertTrue(sensor.error, 'Timeout-Fehler eingetreten');
+    
+    zaehler := zaehler + 1;
+  END_IF
+1:
+  sensor.record(execute:=TRUE);
+  
+  AssertTrue(sensor.recording_finished, 'Timeout-Fehler, daher darf die Aufnahme auch nach einem stopp nicht starten');
+  AssertFalse(sensor.duty_cycle_ok, 'Bei Fehler darf der Durchfluss nicht i.O. sein');
+  AssertTrue(sensor.error, 'Timeout-Fehler eingetreten');
+  
+  TEST_FINISHED();
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="DurchflussAufnahmeMehrmalsDurchfuehren" Id="{f27e5768-955c-4564-9a56-4a92beeb9a06}">
+      <Declaration><![CDATA[METHOD DurchflussAufnahmeMehrmalsDurchfuehren
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+  aufnahmedauer: TIME;
+  t_aufnahmedauer: TON;
+  zaehler: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('DurchflussAufnahmeMehrmalsDurchfuehren');
+
+aufnahmedauer := T#500MS;
+
+CASE zaehler OF
+0:
+  t_aufnahmedauer(IN:=TRUE, PT:=aufnahmedauer);
+
+  sensor.record_delay := T#0S;
+  sensor.signal := t_aufnahmedauer.ET <= T#200MS;
+  sensor.set_duty_cycle_in_percent := 50.0;
+  
+  sensor.record(execute:=NOT t_aufnahmedauer.Q);
+  
+  IF NOT t_aufnahmedauer.Q THEN
+    AssertFalse(sensor.recording_finished, 'Aufnahme laeuft');
+  ELSE
+    AssertTrue(sensor.recording_finished, '1. Aufnahme gestartet und sofort beendet');
+    AssertFalse(sensor.duty_cycle_ok, '1. Durchfluss muss n.i.O. sein');
+    AssertFalse(sensor.error, '1. Es darf kein Fehler anliegen');
+    
+    t_aufnahmedauer(IN:=FALSE);
+    zaehler := zaehler + 1;
+  END_IF
+1:
+  t_aufnahmedauer(IN:=TRUE, PT:=aufnahmedauer);
+
+  sensor.record_delay := T#0S;
+  sensor.signal := t_aufnahmedauer.ET >= T#80MS;
+  sensor.set_duty_cycle_in_percent := 80.0;
+  
+  sensor.record(execute:=NOT t_aufnahmedauer.Q);
+  
+  IF NOT t_aufnahmedauer.Q THEN
+    AssertFalse(sensor.recording_finished, 'Aufnahme laeuft');
+    AssertFalse(sensor.duty_cycle_ok, 'Aufnahme laeuft, daher muss es aus sein');
+    AssertFalse(sensor.error, 'Es darf kein Fehler anliegen');
+  ELSE
+    AssertTrue(sensor.recording_finished, '2. Aufnahme gestartet und sofort beendet');
+    AssertTrue(sensor.duty_cycle_ok, '2. Durchfluss muss i.O. sein');
+    AssertFalse(sensor.error, '2. Es darf kein Fehler anliegen');
+    
+    TEST_FINISHED();
+  END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="DurchflussIOWenn100ProzentAnImSelbenZyklus" Id="{bea5639d-4e06-48a0-89c5-b0a127d3b2ec}">
+      <Declaration><![CDATA[METHOD DurchflussIOWenn100ProzentAnImSelbenZyklus
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('DurchflussIOWenn100ProzentAnImSelbenZyklus');
+
+sensor.record_delay := T#0S;
+sensor.signal := TRUE;
+sensor.set_duty_cycle_in_percent := 100.0;
+
+sensor.record(execute:=TRUE);
+
+sensor.record(execute:=FALSE);
+
+AssertTrue(sensor.recording_finished, 'Aufnahme gestartet und sofort beendet');
+AssertTrue(sensor.duty_cycle_ok, 'Durchfluss muss i.O. sein');
+AssertFalse(sensor.error, 'Es darf kein Fehler anliegen');
+
+TEST_FINISHED();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="DurchflussIOWenn60zu40ProzentAnInMehrerenZyklen" Id="{0a0e5fb5-86aa-4b63-8924-7782ac972722}">
+      <Declaration><![CDATA[METHOD DurchflussIOWenn60zu40ProzentAnInMehrerenZyklen
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+  aufnahmedauer: TIME;
+  t_aufnahmedauer: TON;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('DurchflussIOWenn60zu40ProzentAnInMehrerenZyklen');
+
+aufnahmedauer := T#1S;
+t_aufnahmedauer(IN:=TRUE, PT:=aufnahmedauer);
+
+sensor.record_delay := T#0S;
+sensor.signal := t_aufnahmedauer.ET <= T#600MS;
+sensor.set_duty_cycle_in_percent := 50.0;
+
+sensor.record(execute:=NOT t_aufnahmedauer.Q);
+
+IF NOT t_aufnahmedauer.Q THEN
+  AssertFalse(sensor.recording_finished, 'Aufnahme laeuft');
+ELSE
+  AssertTrue(sensor.recording_finished, 'Aufnahme gestartet und sofort beendet');
+  AssertTrue(sensor.duty_cycle_ok, 'Durchfluss muss i.O. sein');
+  AssertFalse(sensor.error, 'Es darf kein Fehler anliegen');
+  
+  TEST_FINISHED();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="DurchflussNIOWenn100ProzentAusImSelbenZyklus" Id="{8a6e48d8-4816-4274-a8c1-27fcad177241}">
+      <Declaration><![CDATA[METHOD DurchflussNIOWenn100ProzentAusImSelbenZyklus
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('DurchflussNIOWenn100ProzentAusImSelbenZyklus');
+
+sensor.record_delay := T#0S;
+sensor.signal := FALSE;
+sensor.set_duty_cycle_in_percent := 100.0;
+
+sensor.record(execute:=TRUE);
+
+sensor.record(execute:=FALSE);
+
+AssertTrue(sensor.recording_finished, 'Aufnahme gestartet und sofort beendet');
+AssertFalse(sensor.duty_cycle_ok, 'Durchfluss muss n.i.O. sein');
+AssertFalse(sensor.error, 'Es darf kein Fehler anliegen');
+
+TEST_FINISHED();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="DurchflussNIOWenn60zu40ProzentAusInMehrerenZyklen" Id="{69307397-73ea-4a69-8ec3-77226fd233bc}">
+      <Declaration><![CDATA[METHOD DurchflussNIOWenn60zu40ProzentAusInMehrerenZyklen
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+  aufnahmedauer: TIME;
+  t_aufnahmedauer: TON;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('DurchflussNIOWenn60zu40ProzentAusInMehrerenZyklen');
+
+aufnahmedauer := T#1S;
+t_aufnahmedauer(IN:=TRUE, PT:=aufnahmedauer);
+
+sensor.record_delay := T#0S;
+sensor.signal := t_aufnahmedauer.ET >= T#600MS;
+sensor.set_duty_cycle_in_percent := 50.0;
+
+sensor.record(execute:=NOT t_aufnahmedauer.Q);
+
+IF NOT t_aufnahmedauer.Q THEN
+  AssertFalse(sensor.recording_finished, 'Aufnahme laeuft');
+ELSE
+  AssertTrue(sensor.recording_finished, 'Aufnahme gestartet und sofort beendet');
+  AssertFalse(sensor.duty_cycle_ok, 'Durchfluss muss n.i.O. sein');
+  AssertFalse(sensor.error, 'Es darf kein Fehler anliegen');
+  
+  TEST_FINISHED();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GibtNichtsAusWennNeuErstellt" Id="{22b066ec-7f58-46de-b522-e338acd0d194}">
+      <Declaration><![CDATA[METHOD GibtNichtsAusWennNeuErstellt
+VAR_INPUT
+END_VAR
+VAR_INST
+  sensor: SignalDutyCycleRecorder;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('GibtNichtsAusWennNeuErstellt');
+
+sensor.record(execute:=FALSE);
+
+sensor.record(execute:=FALSE);
+
+AssertFalse(sensor.recording_finished, 'Keine Aufnahme gestartet, daher kann auch keine beendet sein');
+AssertFalse(sensor.duty_cycle_ok, 'Nie gestartet');
+AssertFalse(sensor.error, 'Es darf kein Fehler anliegen');
+
+TEST_FINISHED();]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

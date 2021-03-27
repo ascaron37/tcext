@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+  <POU Name="SignalTimeRecorder" Id="{50b9ef85-d5ef-4f95-8c90-21444817cbcb}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK SignalTimeRecorder
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+  _record_delay: TIME;
+  _signal: BOOL;
+  _duration_on: TIME;
+  _duration_off: TIME;
+  t_record_delay: TON;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Property Name="duration_off" Id="{3c86d980-0079-4474-8f55-4dfb55305b84}">
+      <Declaration><![CDATA[PROPERTY duration_off : TIME]]></Declaration>
+      <Get Name="Get" Id="{915b8f38-c90b-4109-a1f0-106263406f3e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[duration_off := _duration_off;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="duration_on" Id="{faf4f117-4bff-46ef-a2d4-1b939b6cd0af}">
+      <Declaration><![CDATA[PROPERTY duration_on : TIME]]></Declaration>
+      <Get Name="Get" Id="{fcde13a2-5eb8-4d10-ae73-46a50e964b20}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[duration_on := _duration_on;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="off_ratio" Id="{85048ccd-8de4-4fb6-b9e5-98cd3fb800db}">
+      <Declaration><![CDATA[PROPERTY off_ratio : REAL]]></Declaration>
+      <Get Name="Get" Id="{a5c26eaa-980c-4a8c-8005-0adb65deebf5}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[off_ratio := 1.0 - on_ratio;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="on_ratio" Id="{ececa6fb-d525-4ab0-8b9f-868e0e7bc108}">
+      <Declaration><![CDATA[PROPERTY on_ratio : REAL]]></Declaration>
+      <Get Name="Get" Id="{ba7ec5d4-cced-42da-9b31-a4ec08edab63}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF (record_duration = T#0S) THEN
+  on_ratio := TO_REAL(signal);
+ELSE
+  on_ratio := TO_REAL(duration_on) / TO_REAL(record_duration);
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="record" Id="{42cca3e1-0f64-43a6-b22d-a3f0f91c42a0}">
+      <Declaration><![CDATA[METHOD record
+VAR_INPUT
+  execute: BOOL;
+END_VAR
+VAR
+  act_timestamp: TIME;
+  previous_cycle_time: TIME;
+END_VAR
+VAR_INST
+  r_execute: R_TRIG;
+  previous_timestamp: TIME;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[t_record_delay(IN:=execute, PT:=record_delay);
+r_execute(CLK:=execute);
+IF r_execute.Q THEN
+  _duration_on := T#0S;
+  _duration_off := T#0S;
+  previous_timestamp := T#0S;
+END_IF
+
+IF t_record_delay.Q THEN
+  act_timestamp := GetSystemTimeAsTime();
+  
+  IF previous_timestamp = T#0S THEN
+    previous_cycle_time := T#0S;
+  ELSE
+    previous_cycle_time := act_timestamp - previous_timestamp;
+  END_IF
+  previous_timestamp := act_timestamp;
+  
+  IF signal THEN
+    _duration_on := _duration_on + previous_cycle_time;
+  ELSE
+    _duration_off := _duration_off + previous_cycle_time;
+  END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="record_delay" Id="{95d9a1c4-8e87-46ed-8d04-bc53f705999a}">
+      <Declaration><![CDATA[PROPERTY record_delay : TIME]]></Declaration>
+      <Get Name="Get" Id="{3bb3a519-2cce-436a-8759-3baf23b886ee}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[record_delay := _record_delay;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{f025a2f7-3ef3-4af8-a769-e8995ed0180c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_record_delay := record_delay;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="record_duration" Id="{319c6fb6-8e66-404e-81b2-83e5cc05d8a8}">
+      <Declaration><![CDATA[PROPERTY record_duration : TIME]]></Declaration>
+      <Get Name="Get" Id="{33191238-4f76-4ba7-9e9b-b18ff5e65f36}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[record_duration := duration_on + duration_off;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="signal" Id="{2394856c-94b8-49e0-b910-cfaded13c1c4}">
+      <Declaration><![CDATA[PROPERTY signal : BOOL]]></Declaration>
+      <Get Name="Get" Id="{25559d9c-83ee-45db-905b-2b628ba87e46}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[signal := _signal;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{16fc0461-a034-415d-bf77-d87535d83777}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_signal := signal;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="started_recording" Id="{7c4c7628-eef1-429e-b9ba-7339a0728161}">
+      <Declaration><![CDATA[PROPERTY started_recording : BOOL]]></Declaration>
+      <Get Name="Get" Id="{21a601a3-ad4e-4484-b2a4-a435869c88d1}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[started_recording := t_record_delay.Q;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+  </POU>
+</TcPlcObject>
