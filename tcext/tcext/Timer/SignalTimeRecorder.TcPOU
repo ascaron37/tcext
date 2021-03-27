@@ -11,6 +11,8 @@ VAR
   _signal: BOOL;
   _duration_on: TIME;
   _duration_off: TIME;
+  _signal_filtertime: TIME;
+  filtertime: TIME;
   t_record_delay: TON;
 END_VAR
 ]]></Declaration>
@@ -77,6 +79,7 @@ END_VAR
 VAR_INST
   r_execute: R_TRIG;
   previous_timestamp: TIME;
+  t_signal_filtertime: TON;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[t_record_delay(IN:=execute, PT:=record_delay);
@@ -84,6 +87,7 @@ r_execute(CLK:=execute);
 IF r_execute.Q THEN
   _duration_on := T#0S;
   _duration_off := T#0S;
+  filtertime := T#0S;
   previous_timestamp := T#0S;
 END_IF
 
@@ -97,8 +101,19 @@ IF t_record_delay.Q THEN
   END_IF
   previous_timestamp := act_timestamp;
   
-  IF signal THEN
+  t_signal_filtertime(IN:=signal, PT:=signal_filtertime);
+  IF t_signal_filtertime.Q AND (filtertime > T#0S) THEN
+    _duration_on := _duration_on + filtertime;
+    filtertime := T#0S;
     _duration_on := _duration_on + previous_cycle_time;
+  ELSIF t_signal_filtertime.Q THEN
+    _duration_on := _duration_on + previous_cycle_time;
+  ELSIF NOT t_signal_filtertime.Q AND signal THEN
+    filtertime := filtertime + previous_cycle_time;
+  ELSIF NOT signal AND (filtertime > T#0S) THEN
+    _duration_off := _duration_off + filtertime;
+    filtertime := T#0S;
+    _duration_off := _duration_off + previous_cycle_time;
   ELSE
     _duration_off := _duration_off + previous_cycle_time;
   END_IF
@@ -151,6 +166,25 @@ END_VAR
 ]]></Declaration>
         <Implementation>
           <ST><![CDATA[_signal := signal;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="signal_filtertime" Id="{3a9d6243-6894-4561-bffb-ab8d019d4d69}">
+      <Declaration><![CDATA[PROPERTY signal_filtertime : TIME]]></Declaration>
+      <Get Name="Get" Id="{79943585-e570-46cb-8d8e-87dd48995671}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[signal_filtertime := _signal_filtertime;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{3f6b2ae9-e3bc-4a5c-acc9-3b8b545b7ffb}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_signal_filtertime := signal_filtertime;]]></ST>
         </Implementation>
       </Set>
     </Property>

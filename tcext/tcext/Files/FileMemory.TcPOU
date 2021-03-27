@@ -3,19 +3,19 @@
   <POU Name="FileMemory" Id="{e4122ad2-71e6-464b-a62d-4f143cb81e6f}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FileMemory EXTENDS Object
 VAR
-  file_path: T_MaxString;
+  file_path: Tc2_System.T_MaxString;
   
-  fb_file_open: FB_FileOpen;
-  fb_file_close: FB_FileClose;
-  fb_file_read: FB_FileRead;
-  fb_file_write: FB_FileWrite;
+  fb_file_open: Tc2_System.FB_FileOpen;
+  fb_file_close: Tc2_System.FB_FileClose;
+  fb_file_read: Tc2_System.FB_FileRead;
+  fb_file_write: Tc2_System.FB_FileWrite;
   
   t_timeout_read: TIME := T#2S;
   t_timeout_write: TIME := T#2S;
   
   lock_action: FileMemoryAction;
   
-  write_period_timer: TP;
+  write_period_timer: Tc2_Standard.TP;
   crc_check: CrcCheck;
 END_VAR
 ]]></Declaration>
@@ -209,7 +209,7 @@ END_VAR]]></Declaration>
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[mode_read := FOPEN_MODEREAD OR FOPEN_MODEBINARY;]]></ST>
+          <ST><![CDATA[mode_read := Tc2_System.FOPEN_MODEREAD OR Tc2_System.FOPEN_MODEBINARY;]]></ST>
         </Implementation>
       </Get>
     </Property>
@@ -220,7 +220,7 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[mode_write := FOPEN_MODEWRITE OR FOPEN_MODEBINARY;]]></ST>
+          <ST><![CDATA[mode_write := Tc2_System.FOPEN_MODEWRITE OR Tc2_System.FOPEN_MODEBINARY;]]></ST>
         </Implementation>
       </Get>
     </Property>
@@ -263,7 +263,7 @@ VAR_INST
   lr_start: LockingRelay;
   done_mem: BOOL;
   error_id_mem: UDINT;
-  timeout_timer: TON;
+  timeout_timer: Tc2_Standard.TON;
   timeout_start: BOOL;
   
   open_transition: TransitionController;
@@ -413,7 +413,7 @@ VAR_INST
   done_mem: BOOL;
   error_id_mem: UDINT;
   counter: INT;
-  timeout_timer: TON;
+  timeout_timer: Tc2_Standard.TON;
   timeout_start: BOOL;
 END_VAR]]></Declaration>
       <Implementation>
