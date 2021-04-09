@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
   <POU Name="SignalDutyCycleRecorder" Id="{48bf5ea2-5b03-4893-b84f-88aefd604703}" SpecialFunc="None">
     <Declaration><![CDATA[(*
 Der Soll-Tastgrad in Prozent gibt das Verhaeltnis der Sensorzustaende An zu Aus waehrend einer Aufnahme an.
@@ -17,6 +17,7 @@ VAR
   _record_delay: TIME := T#1S;
   _timeout: TIME := T#10S;
   _set_duty_cycle_in_percent: REAL := 90.0;
+  signal_recorder: SignalTimeRecorder;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -34,7 +35,6 @@ VAR_INST
   t_timeout: TON;
   f_started_recording: F_TRIG;
   r_execute: R_TRIG;
-  signal_recorder: SignalTimeRecorder;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[r_execute(CLK:=execute);
@@ -86,7 +86,8 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[error := FALSE;]]></ST>
+        <ST><![CDATA[error := FALSE;
+signal_recorder.reset();]]></ST>
       </Implementation>
     </Method>
     <Property Name="set_duty_cycle_in_percent" Id="{59a723f8-4e5d-4b58-99d8-75b48231e2af}">

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
   <POU Name="SignalTimeRecorder" Id="{50b9ef85-d5ef-4f95-8c90-21444817cbcb}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK SignalTimeRecorder
 VAR_INPUT
@@ -150,6 +150,16 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
+    <Method Name="reset" Id="{403d21f2-b5c3-4dc4-ab80-2046b11e0d45}">
+      <Declaration><![CDATA[METHOD reset
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[_duration_off := T#0S;
+_duration_on := T#0S;]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="signal" Id="{2394856c-94b8-49e0-b910-cfaded13c1c4}">
       <Declaration><![CDATA[PROPERTY signal : BOOL]]></Declaration>
       <Get Name="Get" Id="{25559d9c-83ee-45db-905b-2b628ba87e46}">
