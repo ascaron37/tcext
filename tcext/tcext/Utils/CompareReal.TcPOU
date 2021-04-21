@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <POU Name="CompareReal" Id="{d19f00bb-07b3-4d7e-81cd-08b61d36e89f}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION CompareReal : BOOL
+VAR_INPUT
+  value_1: REAL;
+  value_2: REAL;
+  tolerance: REAL;
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CompareReal := ABS(value_1 - value_2) <= tolerance;]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

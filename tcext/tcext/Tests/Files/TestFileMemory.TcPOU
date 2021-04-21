@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
   <POU Name="TestFileMemory" Id="{727abce0-e53b-4d60-9e58-9cda7ebb2f5f}" SpecialFunc="None">
     <Declaration><![CDATA[{attribute 'call_after_init'}
 FUNCTION_BLOCK TestFileMemory EXTENDS TcUnit.FB_TestSuite
@@ -366,7 +366,6 @@ END_VAR]]></Declaration>
         <ST><![CDATA[TEST('write_file');
 
 file_memory.path := 'c:\test_file.be';
-file_memory.path := 'C:\Users\maxim\workspace\test.log';
 
 test_data := 37;
 
