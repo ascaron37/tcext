@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
   <POU Name="SignalTimeRecorder" Id="{50b9ef85-d5ef-4f95-8c90-21444817cbcb}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK SignalTimeRecorder
 VAR_INPUT
@@ -14,6 +14,7 @@ VAR
   _signal_filtertime: TIME;
   filtertime: TIME;
   t_record_delay: TON;
+  t_signal_filtertime: TON;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -41,6 +42,17 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
+    <Property Name="off_is_recording" Id="{18518391-64a0-4325-a38e-ddbc3975fde2}">
+      <Declaration><![CDATA[PROPERTY PUBLIC off_is_recording : BOOL]]></Declaration>
+      <Get Name="Get" Id="{d5159c9d-efd5-4b93-946d-6c9f8645296b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[off_is_recording := started_recording AND NOT t_signal_filtertime.Q;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Property Name="off_ratio" Id="{85048ccd-8de4-4fb6-b9e5-98cd3fb800db}">
       <Declaration><![CDATA[PROPERTY off_ratio : REAL]]></Declaration>
       <Get Name="Get" Id="{a5c26eaa-980c-4a8c-8005-0adb65deebf5}">
@@ -49,6 +61,17 @@ END_VAR
 ]]></Declaration>
         <Implementation>
           <ST><![CDATA[off_ratio := 1.0 - on_ratio;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="on_is_recording" Id="{35cb4c55-bd03-4414-917e-5f0430cf539a}">
+      <Declaration><![CDATA[PROPERTY PUBLIC on_is_recording : BOOL]]></Declaration>
+      <Get Name="Get" Id="{ac86afd5-1140-4c29-8676-722c62fb9807}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[on_is_recording := started_recording AND t_signal_filtertime.Q;]]></ST>
         </Implementation>
       </Get>
     </Property>
@@ -79,7 +102,6 @@ END_VAR
 VAR_INST
   r_execute: R_TRIG;
   previous_timestamp: TIME;
-  t_signal_filtertime: TON;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[t_record_delay(IN:=execute, PT:=record_delay);
