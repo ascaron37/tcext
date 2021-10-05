@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
   <POU Name="TestBitAdrState" Id="{547edaea-38e9-474b-af76-454c809a918a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK TestBitAdrState EXTENDS TcUnit.FB_TestSuite
 VAR_INPUT
@@ -19,7 +19,6 @@ first_bit_of_second_byte_is_on();
 last_bit_of_second_byte_is_off();
 last_bit_of_second_byte_is_on();
 fourth_bit_of_second_byte_is_on();
-negative_bit_adr_is_off();
 out_of_bounds_bit_adr_is_off();]]></ST>
     </Implementation>
     <Method Name="first_bit_of_first_byte_is_off" Id="{0e64da5e-3594-4252-93eb-f5145e0d8470}">
@@ -35,60 +34,6 @@ END_VAR]]></Declaration>
 
 state := BitAdrState(0, ADR(b), SIZEOF(b));
 AssertFalse(state, '');
-
-TEST_FINISHED();]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="last_bit_of_second_byte_is_off" Id="{302c403d-a6cf-4137-bfbe-284f1bc1be54}">
-      <Declaration><![CDATA[METHOD last_bit_of_second_byte_is_off
-VAR
-  state: BOOL;
-END_VAR
-VAR_INST
-  b: ARRAY[0..1] OF BYTE;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[TEST('last_bit_of_second_byte_is_off');
-
-b[1] := 0;
-state := BitAdrState(15, ADR(b), SIZEOF(b));
-AssertFalse(state, '');
-
-TEST_FINISHED();]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="last_bit_of_first_byte_is_on" Id="{4792c87b-119a-451d-b5eb-041f0db8233e}">
-      <Declaration><![CDATA[METHOD last_bit_of_first_byte_is_on
-VAR
-  state: BOOL;
-END_VAR
-VAR_INST
-  b: ARRAY[0..1] OF BYTE;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[TEST('last_bit_of_first_byte_is_on');
-
-b[0] := 128;
-state := BitAdrState(7, ADR(b), SIZEOF(b));
-AssertTrue(state, '');
-
-TEST_FINISHED();]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="first_bit_of_second_byte_is_on" Id="{4c5c9b74-9114-4f2e-9ee3-07371a5227c9}">
-      <Declaration><![CDATA[METHOD first_bit_of_second_byte_is_on
-VAR
-  state: BOOL;
-END_VAR
-VAR_INST
-  b: ARRAY[0..1] OF BYTE;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[TEST('first_bit_of_second_byte_is_on');
-
-b[1] := 1;
-state := BitAdrState(8, ADR(b), SIZEOF(b));
-AssertTrue(state, '');
 
 TEST_FINISHED();]]></ST>
       </Implementation>
@@ -129,6 +74,24 @@ AssertFalse(state, '');
 TEST_FINISHED();]]></ST>
       </Implementation>
     </Method>
+    <Method Name="first_bit_of_second_byte_is_on" Id="{4c5c9b74-9114-4f2e-9ee3-07371a5227c9}">
+      <Declaration><![CDATA[METHOD first_bit_of_second_byte_is_on
+VAR
+  state: BOOL;
+END_VAR
+VAR_INST
+  b: ARRAY[0..1] OF BYTE;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('first_bit_of_second_byte_is_on');
+
+b[1] := 1;
+state := BitAdrState(8, ADR(b), SIZEOF(b));
+AssertTrue(state, '');
+
+TEST_FINISHED();]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="fourth_bit_of_second_byte_is_on" Id="{a25d06ce-ed52-4cbd-8130-02c75e84d22d}">
       <Declaration><![CDATA[METHOD fourth_bit_of_second_byte_is_on
 VAR
@@ -165,8 +128,8 @@ AssertFalse(state, '');
 TEST_FINISHED();]]></ST>
       </Implementation>
     </Method>
-    <Method Name="out_of_bounds_bit_adr_is_off" Id="{d518ca4e-f9ef-4f37-9d06-fe80d7e35a0f}">
-      <Declaration><![CDATA[METHOD out_of_bounds_bit_adr_is_off
+    <Method Name="last_bit_of_first_byte_is_on" Id="{4792c87b-119a-451d-b5eb-041f0db8233e}">
+      <Declaration><![CDATA[METHOD last_bit_of_first_byte_is_on
 VAR
   state: BOOL;
 END_VAR
@@ -174,11 +137,28 @@ VAR_INST
   b: ARRAY[0..1] OF BYTE;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[TEST('out_of_bounds_bit_adr_is_off');
+        <ST><![CDATA[TEST('last_bit_of_first_byte_is_on');
 
-b[0] := 255;
-b[1] := 255;
-state := BitAdrState(16, ADR(b), SIZEOF(b));
+b[0] := 128;
+state := BitAdrState(7, ADR(b), SIZEOF(b));
+AssertTrue(state, '');
+
+TEST_FINISHED();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="last_bit_of_second_byte_is_off" Id="{302c403d-a6cf-4137-bfbe-284f1bc1be54}">
+      <Declaration><![CDATA[METHOD last_bit_of_second_byte_is_off
+VAR
+  state: BOOL;
+END_VAR
+VAR_INST
+  b: ARRAY[0..1] OF BYTE;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('last_bit_of_second_byte_is_off');
+
+b[1] := 0;
+state := BitAdrState(15, ADR(b), SIZEOF(b));
 AssertFalse(state, '');
 
 TEST_FINISHED();]]></ST>
@@ -202,8 +182,8 @@ AssertTrue(state, '');
 TEST_FINISHED();]]></ST>
       </Implementation>
     </Method>
-    <Method Name="negative_bit_adr_is_off" Id="{f128680f-e3f2-43b9-a8bf-f2d24073c69e}">
-      <Declaration><![CDATA[METHOD negative_bit_adr_is_off
+    <Method Name="out_of_bounds_bit_adr_is_off" Id="{d518ca4e-f9ef-4f37-9d06-fe80d7e35a0f}">
+      <Declaration><![CDATA[METHOD out_of_bounds_bit_adr_is_off
 VAR
   state: BOOL;
 END_VAR
@@ -211,10 +191,11 @@ VAR_INST
   b: ARRAY[0..1] OF BYTE;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[TEST('negative_bit_adr_is_off');
+        <ST><![CDATA[TEST('out_of_bounds_bit_adr_is_off');
 
-b[0] := 1;
-state := BitAdrState(-1, ADR(b), SIZEOF(b));
+b[0] := 255;
+b[1] := 255;
+state := BitAdrState(16, ADR(b), SIZEOF(b));
 AssertFalse(state, '');
 
 TEST_FINISHED();]]></ST>
