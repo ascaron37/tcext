@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
   <POU Name="MAIN_TEST" Id="{c5a022a8-f196-47f6-9c7f-1db1bc1f3d17}" SpecialFunc="None">
     <Declaration><![CDATA[{attribute 'hide'}
 PROGRAM MAIN_TEST
@@ -7,6 +7,8 @@ VAR
   test_file_memory: TestFileMemory;
   test_durchflusssensor: TestSignalDutyCycleRecorder;
   time_test: TIME;
+  test_bit_adr_state: TestBitAdrState;
+  test_modabs_int: TestModabsInt;
 END_VAR
 ]]></Declaration>
     <Implementation>

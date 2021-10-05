@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <POU Name="BitAdrState" Id="{ca1adac0-79f1-4283-b5d9-96be67afd551}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION BitAdrState : BOOL
+VAR_INPUT
+  bit_adr: DWORD;
+  data_ptr: POINTER TO BYTE;
+  data_size: DWORD;
+END_VAR
+VAR
+  index: DINT;
+  byte_bit_adr: UDINT;
+  byte_mask: BYTE;
+END_VAR
+VAR CONSTANT
+  BYTE_BIT_SIZE: DWORD := 8;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bit_adr >= (data_size * BYTE_BIT_SIZE) THEN
+  RETURN;
+END_IF
+
+index := TRUNC(bit_adr / BYTE_BIT_SIZE);
+byte_bit_adr := bit_adr MOD BYTE_BIT_SIZE;
+byte_mask := SHL(1, byte_bit_adr);
+
+BitAdrState := (data_ptr[index] AND byte_mask) <> 0;]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

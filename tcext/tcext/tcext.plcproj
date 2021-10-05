@@ -43,6 +43,12 @@
     <Compile Include="Files\FileMemoryAction.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Object\BitAdrState.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Object\ModabsInt.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Object\Object.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -53,6 +59,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Tests\MAIN_TEST.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tests\TestBitAdrState.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tests\TestModabsInt.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Tests\Timer\TestSignalDutyCycleRecorder.TcPOU">

@@ -380,8 +380,7 @@ IF done THEN
   AssertEquals_UDINT(0, error_id, CONCAT('File could not be written. Error: ', TO_STRING(error_id)));
   
   TEST_FINISHED();
-END_IF
-  ]]></ST>
+END_IF]]></ST>
       </Implementation>
     </Method>
     <Method Name="write_twice" Id="{77d101fc-cabd-4c3c-8eb4-5534011cfd81}">

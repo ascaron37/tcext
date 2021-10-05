@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <POU Name="ModabsInt" Id="{3c221334-7c0d-487f-8f11-b650d814b67e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION ModabsInt : INT
+VAR_INPUT
+  val: INT;
+  denom: INT;
+END_VAR
+VAR
+  buffer: INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF val < 0 THEN
+  val := val + (ABS(val / denom) + 1) * denom;
+END_IF
+ModabsInt := val MOD denom;]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
