@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
   <POU Name="FileMemory" Id="{e4122ad2-71e6-464b-a62d-4f143cb81e6f}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FileMemory EXTENDS Object
 VAR
@@ -17,6 +17,8 @@ VAR
   
   write_period_timer: Tc2_Standard.TP;
   crc_check: CrcCheck;
+  _mode_read: DWORD := Tc2_System.FOPEN_MODEREAD OR Tc2_System.FOPEN_MODEBINARY;
+  _mode_write: DWORD := Tc2_System.FOPEN_MODEWRITE OR Tc2_System.FOPEN_MODEBINARY;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -203,26 +205,44 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <Property Name="mode_read" Id="{53c862d1-f25e-44d4-87e8-9bdb4dbfa7b2}">
-      <Declaration><![CDATA[PROPERTY PRIVATE mode_read : DWORD]]></Declaration>
+      <Declaration><![CDATA[PROPERTY PUBLIC mode_read : DWORD]]></Declaration>
       <Get Name="Get" Id="{11b7578a-5ada-4411-ab34-d3fabee53aab}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[mode_read := Tc2_System.FOPEN_MODEREAD OR Tc2_System.FOPEN_MODEBINARY;]]></ST>
+          <ST><![CDATA[mode_read := _mode_read;]]></ST>
         </Implementation>
       </Get>
+      <Set Name="Set" Id="{7e80e8d3-e882-4df6-9099-b7b8de37f4a2}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_mode_read := mode_read;]]></ST>
+        </Implementation>
+      </Set>
     </Property>
     <Property Name="mode_write" Id="{47b2277c-8bae-4854-8d1c-940e1af32287}">
-      <Declaration><![CDATA[PROPERTY PRIVATE mode_write : DWORD]]></Declaration>
+      <Declaration><![CDATA[PROPERTY PUBLIC mode_write : DWORD]]></Declaration>
       <Get Name="Get" Id="{061a9dfb-6307-48d5-b04c-18b6ba33b846}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[mode_write := Tc2_System.FOPEN_MODEWRITE OR Tc2_System.FOPEN_MODEBINARY;]]></ST>
+          <ST><![CDATA[mode_write := _mode_write;]]></ST>
         </Implementation>
       </Get>
+      <Set Name="Set" Id="{51ec2325-4f70-41b4-89d3-f8ecf133f3a7}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_mode_write := mode_write;]]></ST>
+        </Implementation>
+      </Set>
     </Property>
     <Property Name="path" Id="{2066a749-4ab3-4a33-bb1c-841e8288bc25}">
       <Declaration><![CDATA[PROPERTY path : T_MaxString]]></Declaration>
