@@ -30,7 +30,9 @@
     <Folder Include="GVL" />
     <Folder Include="Tests\Timer" />
     <Folder Include="Timer" />
-    <Folder Include="Tests" />
+    <Folder Include="Tests">
+      <ExcludeFromBuild>true</ExcludeFromBuild>
+    </Folder>
     <Folder Include="Tests\Files" />
     <Folder Include="Visu" />
     <Folder Include="Object" />
@@ -52,13 +54,13 @@
     <Compile Include="Object\Object.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PlcTask.TcTTO">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Tests\Files\TestFileMemory.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Tests\MAIN_TEST.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tests\PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Tests\TestBitAdrState.TcPOU">
@@ -127,7 +129,14 @@
       <DefaultResolution>TcUnit, * (www.tcunit.org)</DefaultResolution>
       <Namespace>TcUnit</Namespace>
       <HideWhenReferencedAsDependency>true</HideWhenReferencedAsDependency>
+      <Optional>true</Optional>
+      <Condition>TEST</Condition>
     </PlaceholderReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PlaceholderResolution Include="TcUnit">
+      <Resolution>TcUnit, 1.2.1.0 (www.tcunit.org)</Resolution>
+    </PlaceholderResolution>
   </ItemGroup>
   <ProjectExtensions>
     <PlcProjectOptions>
