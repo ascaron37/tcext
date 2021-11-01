@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="MAIN" Id="{2c89e8f7-6dea-4729-ad74-2566660fc32d}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'hide'}
+PROGRAM MAIN
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{IF defined(TEST)}
+MAIN_TEST();
+{END_IF}]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
