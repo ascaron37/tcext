@@ -9,10 +9,13 @@ END_VAR
 VAR
   _record_delay: TIME;
   _signal: BOOL;
-  _duration_on: TIME;
-  _duration_off: TIME;
   _signal_filtertime: TIME;
   filtertime: TIME;
+  
+  _duration_on_in_ms: ULINT;
+  _timestamp_on_in_ms: ULINT;
+  _duration_off_in_ms: ULINT;
+  _timestamp_off_in_ms: ULINT;
   t_record_delay: TON;
   t_signal_filtertime: TON;
 END_VAR
@@ -20,30 +23,143 @@ END_VAR
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
+    <Property Name="act_duration_off_in_ms" Id="{97112537-0190-4c3d-b57f-d09fa6bfedf2}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC act_duration_off_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{51f511b5-c48e-49d3-868f-a7456dd5d348}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[act_duration_off_in_ms := duration_off_in_ms;
+IF timestamp_off_in_ms > 0 THEN
+  act_duration_off_in_ms := act_duration_off_in_ms + (act_timestamp_in_ms - timestamp_off_in_ms);
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="act_duration_on_in_ms" Id="{50e61b5b-fc0e-43b8-85ab-e3ee535d68c1}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC act_duration_on_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{5c972589-b5e3-4c9a-b544-f08f5ba2be3d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[act_duration_on_in_ms := duration_on_in_ms;
+IF timestamp_on_in_ms > 0 THEN
+  act_duration_on_in_ms := act_duration_on_in_ms + (act_timestamp_in_ms - timestamp_on_in_ms);
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="act_record_duration_in_ms" Id="{259ca720-6da2-4ee9-8676-52c8ae285882}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY act_record_duration_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{0ff35516-e59c-4a74-ac04-422818a3fd1e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[act_record_duration_in_ms := act_duration_on_in_ms + act_duration_off_in_ms;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="act_timestamp_in_ms" Id="{1a660cd4-bed6-4099-b5f5-a353c996b709}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PRIVATE act_timestamp_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{9cbdf919-7788-4d86-8392-d456062ea5f4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[act_timestamp_in_ms := F_GetSystemTime() / 10000;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="apply_duration" Id="{370cb14d-c351-4c9d-99cd-67f4bf89aa10}">
+      <Declaration><![CDATA[METHOD PRIVATE apply_duration
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF timestamp_on_in_ms > 0 THEN
+  duration_on_in_ms := duration_on_in_ms + (act_timestamp_in_ms - timestamp_on_in_ms);
+  timestamp_on_in_ms := 0;
+END_IF
+IF timestamp_off_in_ms > 0 THEN
+  duration_off_in_ms := duration_off_in_ms + (act_timestamp_in_ms - timestamp_off_in_ms);
+  timestamp_off_in_ms := 0;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="duration_off" Id="{3c86d980-0079-4474-8f55-4dfb55305b84}">
-      <Declaration><![CDATA[PROPERTY duration_off : TIME]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY duration_off : TIME]]></Declaration>
       <Get Name="Get" Id="{915b8f38-c90b-4109-a1f0-106263406f3e}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[duration_off := _duration_off;]]></ST>
+          <ST><![CDATA[duration_off := TO_TIME(act_duration_off_in_ms);]]></ST>
         </Implementation>
       </Get>
     </Property>
+    <Property Name="duration_off_in_ms" Id="{c4b3e040-8830-4966-9884-890e3965a1c0}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC duration_off_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{0ce7f9d8-0c8c-4de0-8276-00bd6c83994b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[duration_off_in_ms := _duration_off_in_ms;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{ca7be16a-3994-40bf-87db-ccd5f86941f5}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_duration_off_in_ms := duration_off_in_ms;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Property Name="duration_on" Id="{faf4f117-4bff-46ef-a2d4-1b939b6cd0af}">
-      <Declaration><![CDATA[PROPERTY duration_on : TIME]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY duration_on : TIME]]></Declaration>
       <Get Name="Get" Id="{fcde13a2-5eb8-4d10-ae73-46a50e964b20}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[duration_on := _duration_on;]]></ST>
+          <ST><![CDATA[duration_on := TO_TIME(act_duration_on_in_ms);]]></ST>
         </Implementation>
       </Get>
     </Property>
+    <Property Name="duration_on_in_ms" Id="{b3054995-ba06-4c56-aac1-730c6abb5157}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC duration_on_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{543f2669-e132-437f-a488-f4f76025a383}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[duration_on_in_ms := _duration_on_in_ms;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{ecfb9782-6b46-41bc-90ae-90bb4a4b0f87}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_duration_on_in_ms := duration_on_in_ms;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Property Name="off_is_recording" Id="{18518391-64a0-4325-a38e-ddbc3975fde2}">
-      <Declaration><![CDATA[PROPERTY PUBLIC off_is_recording : BOOL]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC off_is_recording : BOOL]]></Declaration>
       <Get Name="Get" Id="{d5159c9d-efd5-4b93-946d-6c9f8645296b}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -54,7 +170,8 @@ END_VAR
       </Get>
     </Property>
     <Property Name="off_ratio" Id="{85048ccd-8de4-4fb6-b9e5-98cd3fb800db}">
-      <Declaration><![CDATA[PROPERTY off_ratio : REAL]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY off_ratio : REAL]]></Declaration>
       <Get Name="Get" Id="{a5c26eaa-980c-4a8c-8005-0adb65deebf5}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -65,7 +182,8 @@ END_VAR
       </Get>
     </Property>
     <Property Name="on_is_recording" Id="{35cb4c55-bd03-4414-917e-5f0430cf539a}">
-      <Declaration><![CDATA[PROPERTY PUBLIC on_is_recording : BOOL]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC on_is_recording : BOOL]]></Declaration>
       <Get Name="Get" Id="{ac86afd5-1140-4c29-8676-722c62fb9807}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -76,7 +194,8 @@ END_VAR
       </Get>
     </Property>
     <Property Name="on_ratio" Id="{ececa6fb-d525-4ab0-8b9f-868e0e7bc108}">
-      <Declaration><![CDATA[PROPERTY on_ratio : REAL]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY on_ratio : REAL]]></Declaration>
       <Get Name="Get" Id="{ba7ec5d4-cced-42da-9b31-a4ec08edab63}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -85,7 +204,7 @@ END_VAR
           <ST><![CDATA[IF (record_duration = T#0S) THEN
   on_ratio := TO_REAL(signal);
 ELSE
-  on_ratio := TO_REAL(duration_on) / TO_REAL(record_duration);
+  on_ratio := TO_REAL(duration_on_in_ms) / TO_REAL(record_duration_in_ms);
 END_IF]]></ST>
         </Implementation>
       </Get>
@@ -100,50 +219,39 @@ VAR
   previous_cycle_time: TIME;
 END_VAR
 VAR_INST
-  r_execute: R_TRIG;
   previous_timestamp: TIME;
+  
+  r_signal_filtertime: R_TRIG;
+  f_signal: F_TRIG;
+  f_execute: F_TRIG;
+  r_record_delay: R_TRIG;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[t_record_delay(IN:=execute, PT:=record_delay);
-r_execute(CLK:=execute);
-IF r_execute.Q THEN
-  _duration_on := T#0S;
-  _duration_off := T#0S;
-  filtertime := T#0S;
-  previous_timestamp := T#0S;
+        <ST><![CDATA[f_execute(CLK:=execute);
+IF f_execute.Q THEN
+  apply_duration();
 END_IF
+t_record_delay(IN:=execute, PT:=record_delay);
 
+r_record_delay(CLK:=t_record_delay.Q);
 IF t_record_delay.Q THEN
-  act_timestamp := GetSystemTimeAsTime();
-  
-  IF previous_timestamp = T#0S THEN
-    previous_cycle_time := T#0S;
-  ELSE
-    previous_cycle_time := act_timestamp - previous_timestamp;
-  END_IF
-  previous_timestamp := act_timestamp;
-  
   t_signal_filtertime(IN:=signal, PT:=signal_filtertime);
-  IF t_signal_filtertime.Q AND (filtertime > T#0S) THEN
-    _duration_on := _duration_on + filtertime;
-    filtertime := T#0S;
-    _duration_on := _duration_on + previous_cycle_time;
-  ELSIF t_signal_filtertime.Q THEN
-    _duration_on := _duration_on + previous_cycle_time;
-  ELSIF NOT t_signal_filtertime.Q AND signal THEN
-    filtertime := filtertime + previous_cycle_time;
-  ELSIF NOT signal AND (filtertime > T#0S) THEN
-    _duration_off := _duration_off + filtertime;
-    filtertime := T#0S;
-    _duration_off := _duration_off + previous_cycle_time;
-  ELSE
-    _duration_off := _duration_off + previous_cycle_time;
-  END_IF
+  r_signal_filtertime(CLK:=t_signal_filtertime.Q);
+  IF r_signal_filtertime.Q THEN
+    apply_duration();
+    timestamp_on_in_ms := act_timestamp_in_ms - TO_ULINT(signal_filtertime);
+	END_IF
+  f_signal(CLK:=signal);
+  IF f_signal.Q OR (r_record_delay.Q AND NOT signal) THEN
+    apply_duration();
+    timestamp_off_in_ms := act_timestamp_in_ms;
+	END_IF
 END_IF]]></ST>
       </Implementation>
     </Method>
     <Property Name="record_delay" Id="{95d9a1c4-8e87-46ed-8d04-bc53f705999a}">
-      <Declaration><![CDATA[PROPERTY record_delay : TIME]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY record_delay : TIME]]></Declaration>
       <Get Name="Get" Id="{3bb3a519-2cce-436a-8759-3baf23b886ee}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -162,7 +270,8 @@ END_VAR
       </Set>
     </Property>
     <Property Name="record_duration" Id="{319c6fb6-8e66-404e-81b2-83e5cc05d8a8}">
-      <Declaration><![CDATA[PROPERTY record_duration : TIME]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY record_duration : TIME]]></Declaration>
       <Get Name="Get" Id="{33191238-4f76-4ba7-9e9b-b18ff5e65f36}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -172,18 +281,33 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
+    <Property Name="record_duration_in_ms" Id="{4b94213f-d77c-415e-a091-6c453016de60}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY record_duration_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{c9c89ff1-ce30-4f7c-a850-27ce0b48474e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[record_duration_in_ms := duration_on_in_ms + duration_off_in_ms;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="reset" Id="{403d21f2-b5c3-4dc4-ab80-2046b11e0d45}">
       <Declaration><![CDATA[METHOD reset
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[_duration_off := T#0S;
-_duration_on := T#0S;]]></ST>
+        <ST><![CDATA[duration_off_in_ms := 0;
+duration_on_in_ms := 0;
+timestamp_off_in_ms := 0;
+timestamp_on_in_ms := 0;]]></ST>
       </Implementation>
     </Method>
     <Property Name="signal" Id="{2394856c-94b8-49e0-b910-cfaded13c1c4}">
-      <Declaration><![CDATA[PROPERTY signal : BOOL]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY signal : BOOL]]></Declaration>
       <Get Name="Get" Id="{25559d9c-83ee-45db-905b-2b628ba87e46}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -202,7 +326,8 @@ END_VAR
       </Set>
     </Property>
     <Property Name="signal_filtertime" Id="{3a9d6243-6894-4561-bffb-ab8d019d4d69}">
-      <Declaration><![CDATA[PROPERTY signal_filtertime : TIME]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY signal_filtertime : TIME]]></Declaration>
       <Get Name="Get" Id="{79943585-e570-46cb-8d8e-87dd48995671}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -221,7 +346,8 @@ END_VAR
       </Set>
     </Property>
     <Property Name="started_recording" Id="{7c4c7628-eef1-429e-b9ba-7339a0728161}">
-      <Declaration><![CDATA[PROPERTY started_recording : BOOL]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY started_recording : BOOL]]></Declaration>
       <Get Name="Get" Id="{21a601a3-ad4e-4484-b2a4-a435869c88d1}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -230,6 +356,46 @@ END_VAR
           <ST><![CDATA[started_recording := t_record_delay.Q;]]></ST>
         </Implementation>
       </Get>
+    </Property>
+    <Property Name="timestamp_off_in_ms" Id="{f536fff5-a313-4072-850b-8432a05c94ac}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC timestamp_off_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{71f1c923-a65e-4fad-bde4-d8565b48ffa6}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[timestamp_off_in_ms := _timestamp_off_in_ms;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{2f371396-f27c-4cd3-a40a-07c90ac46d9c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_timestamp_off_in_ms := timestamp_off_in_ms;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="timestamp_on_in_ms" Id="{9de9a04b-c60b-4060-9e97-538ab9243b7b}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC timestamp_on_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{9af62977-3e6e-4938-84ca-b79a4d6c2fdf}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[timestamp_on_in_ms := _timestamp_on_in_ms;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{869751ab-4817-45a6-8e04-bb0ab149d383}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_timestamp_on_in_ms := timestamp_on_in_ms;]]></ST>
+        </Implementation>
+      </Set>
     </Property>
   </POU>
 </TcPlcObject>

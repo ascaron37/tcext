@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
   <POU Name="SignalDutyCycleRecorder" Id="{48bf5ea2-5b03-4893-b84f-88aefd604703}" SpecialFunc="None">
     <Declaration><![CDATA[(*
 Der Soll-Tastgrad in Prozent gibt das Verhaeltnis der Sensorzustaende An zu Aus waehrend einer Aufnahme an.
@@ -41,6 +41,7 @@ END_VAR]]></Declaration>
 IF r_execute.Q AND NOT error THEN
   recording_finished := FALSE;
   signal_recorder.record(execute:=FALSE);
+  signal_recorder.reset();
 END_IF
 
 t_timeout(IN:=signal_recorder.started_recording, PT:=timeout);
@@ -62,7 +63,8 @@ END_IF]]></ST>
       </Implementation>
     </Method>
     <Property Name="record_delay" Id="{5171c9c4-9fcb-48f7-8e1e-b85a424f5f7f}">
-      <Declaration><![CDATA[PROPERTY record_delay : TIME]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY record_delay : TIME]]></Declaration>
       <Get Name="Get" Id="{1a34ded8-bb19-4757-b3a8-441ba08ef81a}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -91,7 +93,8 @@ signal_recorder.reset();]]></ST>
       </Implementation>
     </Method>
     <Property Name="set_duty_cycle_in_percent" Id="{59a723f8-4e5d-4b58-99d8-75b48231e2af}">
-      <Declaration><![CDATA[PROPERTY set_duty_cycle_in_percent : REAL]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY set_duty_cycle_in_percent : REAL]]></Declaration>
       <Get Name="Get" Id="{72f77a1e-bd0d-41fd-a8e5-09584dc5aaaf}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -118,7 +121,8 @@ _set_duty_cycle_in_percent := tastgrad;]]></ST>
       </Set>
     </Property>
     <Property Name="timeout" Id="{20030a2c-9022-4d73-95a0-e81bf217fe2d}">
-      <Declaration><![CDATA[PROPERTY timeout : TIME]]></Declaration>
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY timeout : TIME]]></Declaration>
       <Get Name="Get" Id="{52fba5ed-1618-4f8f-8ca5-97eb2f417fea}">
         <Declaration><![CDATA[VAR
 END_VAR
