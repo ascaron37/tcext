@@ -157,6 +157,21 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
+    <Method Name="init_timestamps" Id="{c3f4023d-bc6a-45b8-a8bd-462d4d39cdb7}">
+      <Declaration><![CDATA[METHOD PRIVATE init_timestamps
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF timestamp_off_in_ms = 0 AND timestamp_on_in_ms = 0 THEN
+  IF signal THEN
+    timestamp_on_in_ms := act_timestamp_in_ms;
+  ELSE
+    timestamp_off_in_ms := act_timestamp_in_ms;
+	END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="off_is_recording" Id="{18518391-64a0-4325-a38e-ddbc3975fde2}">
       <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
 PROPERTY PUBLIC off_is_recording : BOOL]]></Declaration>
@@ -235,11 +250,15 @@ t_record_delay(IN:=execute, PT:=record_delay);
 
 r_record_delay(CLK:=t_record_delay.Q);
 IF t_record_delay.Q THEN
+  init_timestamps();
   t_signal_filtertime(IN:=signal, PT:=signal_filtertime);
   r_signal_filtertime(CLK:=t_signal_filtertime.Q);
   IF r_signal_filtertime.Q THEN
     apply_duration();
     timestamp_on_in_ms := act_timestamp_in_ms - TO_ULINT(signal_filtertime);
+    IF duration_off_in_ms > 0 THEN
+      duration_off_in_ms := duration_off_in_ms - TO_ULINT(signal_filtertime);
+		END_IF
 	END_IF
   f_signal(CLK:=signal);
   IF f_signal.Q OR (r_record_delay.Q AND NOT signal) THEN
