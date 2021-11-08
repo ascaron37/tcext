@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="SimpleSignalTimeRecorder" Id="{9a40a3ac-2c98-04dc-2554-ce5e5eff3210}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK SimpleSignalTimeRecorder
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+  _signal: BOOL;
+  
+  _duration_in_ms: ULINT;
+  _timestamp_in_ms: ULINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Property Name="act_duration_in_ms" Id="{deee1cb0-c59a-0c07-1667-5533e8b315b4}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY act_duration_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{0d2c36f6-d496-03d6-0f76-0a105d872d60}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF timestamp_in_ms > 0 THEN
+  act_duration_in_ms := act_timestamp_in_ms - timestamp_in_ms;
+ELSE
+  act_duration_in_ms := duration_in_ms;
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="act_timestamp_in_ms" Id="{636a5c57-2faa-0001-3035-7d5af11c8fc9}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PRIVATE act_timestamp_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{c59712f9-1bda-08d6-19f4-9a56d492239b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[act_timestamp_in_ms := F_GetSystemTime() / 10000;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="apply_duration" Id="{91a8ddd2-5119-09b3-08bd-ebe51266edab}">
+      <Declaration><![CDATA[METHOD PRIVATE apply_duration
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF timestamp_in_ms > 0 THEN
+  duration_in_ms := act_duration_in_ms;
+  timestamp_in_ms := 0;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="duration" Id="{658254b4-3046-0ffe-1b8c-64331136bda5}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY duration : TIME]]></Declaration>
+      <Get Name="Get" Id="{4abd6930-9a13-0f55-2d8c-c14ff641c61d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[duration := TO_TIME(duration_in_ms);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="duration_in_ms" Id="{81971e32-737a-0b3b-219b-d4b5601c6f46}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC duration_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{dfe28ede-c669-0008-3484-6c40532d26a3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[duration_in_ms := _duration_in_ms;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{e3763d05-4c8a-0038-184b-87d7f68c4f62}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_duration_in_ms := duration_in_ms;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="record" Id="{ed60f834-7543-06f6-04b3-39420caadf6a}">
+      <Declaration><![CDATA[METHOD record
+VAR_INPUT
+  execute: BOOL;
+END_VAR
+VAR_INST
+  r_signal: R_TRIG;
+  r_execute: R_TRIG;
+  f_execute: F_TRIG;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[r_execute(CLK:=execute);
+f_execute(CLK:=execute);
+IF r_execute.Q AND NOT signal THEN
+  timestamp_in_ms := act_timestamp_in_ms;
+END_IF
+IF f_execute.Q THEN
+  timestamp_in_ms := 0;
+END_IF
+
+r_signal(CLK:=signal);
+IF execute AND r_signal.Q THEN
+  apply_duration();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{ae22398a-5efb-0a42-34c3-bda054a4f096}">
+      <Declaration><![CDATA[METHOD reset
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[duration_in_ms := 0;
+timestamp_in_ms := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="signal" Id="{a63331a5-a13a-090f-3c60-2cd45a38c754}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY signal : BOOL]]></Declaration>
+      <Get Name="Get" Id="{700b3a72-d182-03ac-26f6-a2318b9c7ca5}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[signal := _signal;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{79605bdd-cad3-0fcd-06e1-b729d2b3a116}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_signal := signal;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="timestamp_in_ms" Id="{30df290b-e594-0d9d-3055-1d518a190ccc}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC timestamp_in_ms : ULINT]]></Declaration>
+      <Get Name="Get" Id="{19effa5a-78f2-01d0-2a36-047ee5cc055c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[timestamp_in_ms := _timestamp_in_ms;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{95b8f6c4-98df-0199-1cf9-a10763d7c8c4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_timestamp_in_ms := timestamp_in_ms;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+  </POU>
+</TcPlcObject>

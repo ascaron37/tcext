@@ -14,13 +14,13 @@
     <Implicit_KindOfTask>{ff7d294d-82bd-4bbf-92d6-a1f1234e74cf}</Implicit_KindOfTask>
     <Implicit_Jitter_Distribution>{c4d17746-10d8-4c44-8987-a3758a9fee23}</Implicit_Jitter_Distribution>
     <LibraryReferences>{ddd001da-651b-462a-ad12-61b8a3d7f91e}</LibraryReferences>
-    <CombineIds>false</CombineIds>
+    <CombineIds>true</CombineIds>
     <Company>TcExt</Company>
     <Released>false</Released>
     <Title>TcExt</Title>
     <DefaultNamespace>TcExt</DefaultNamespace>
     <CompilerVersion>3.1.4022.22</CompilerVersion>
-    <ProjectVersion>0.2.0</ProjectVersion>
+    <ProjectVersion>0.2.1</ProjectVersion>
     <CompilerDefines />
     <!--    <OutputType>Exe</OutputType>
     <RootNamespace>MyApplication</RootNamespace>
@@ -83,6 +83,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Timer\SignalDutyCycleRecorder.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Timer\SimpleSignalTimeRecorder.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Utils\CompareReal.TcPOU">
