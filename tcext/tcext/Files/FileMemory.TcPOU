@@ -80,6 +80,28 @@ IF NOT write_period_timer.q THEN
 END_IF]]></ST>
       </Implementation>
     </Method>
+    <Property Name="busy_reading" Id="{d08325cc-a86b-0522-09b6-235ca1871adf}">
+      <Declaration><![CDATA[PROPERTY PUBLIC busy_reading : BOOL]]></Declaration>
+      <Get Name="Get" Id="{b92cf97d-4786-068d-386e-79ed9d02117f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[busy_reading := THIS^.lock_action = FileMemoryAction.READ;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="busy_writing" Id="{cf6bd090-811b-0879-38b0-6c42e29463d8}">
+      <Declaration><![CDATA[PROPERTY PUBLIC busy_writing : BOOL]]></Declaration>
+      <Get Name="Get" Id="{f337cbdc-f4d1-0087-1772-e5faf140dade}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[busy_writing := THIS^.lock_action = FileMemoryAction.WRITE;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="file_close" Id="{7fcd06b4-6238-468c-8d15-ed3ce3a51822}">
       <Declaration><![CDATA[METHOD file_close
 VAR_INPUT
