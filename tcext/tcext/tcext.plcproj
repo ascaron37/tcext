@@ -20,7 +20,7 @@
     <Title>TcExt</Title>
     <DefaultNamespace>TcExt</DefaultNamespace>
     <CompilerVersion>3.1.4022.22</CompilerVersion>
-    <ProjectVersion>0.2.2</ProjectVersion>
+    <ProjectVersion>0.2.3</ProjectVersion>
     <CompilerDefines />
     <!--    <OutputType>Exe</OutputType>
     <RootNamespace>MyApplication</RootNamespace>
@@ -86,6 +86,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Timer\SimpleSignalTimeRecorder.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Timer\SimpleTimeRecorder.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Utils\CompareReal.TcPOU">
