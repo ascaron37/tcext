@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
   <POU Name="SimpleSignalTimeRecorder" Id="{9a40a3ac-2c98-04dc-2554-ce5e5eff3210}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK SimpleSignalTimeRecorder
 VAR_INPUT

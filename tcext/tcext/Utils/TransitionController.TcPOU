@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
   <POU Name="TransitionController" Id="{20cd3498-8cad-479f-bb2a-eeea5268535f}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK TransitionController
 VAR_INPUT
@@ -60,23 +60,5 @@ END_IF]]></ST>
         </Implementation>
       </Get>
     </Property>
-    <LineIds Name="TransitionController">
-      <LineId Id="9" Count="0" />
-    </LineIds>
-    <LineIds Name="TransitionController.fire">
-      <LineId Id="7" Count="3" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="12" Count="1" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="14" Count="0" />
-    </LineIds>
-    <LineIds Name="TransitionController.transition.Get">
-      <LineId Id="13" Count="2" />
-      <LineId Id="12" Count="0" />
-      <LineId Id="2" Count="0" />
-      <LineId Id="8" Count="0" />
-      <LineId Id="5" Count="2" />
-      <LineId Id="9" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>

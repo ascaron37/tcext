@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
   <POU Name="TestSignalDutyCycleRecorder" Id="{77135db3-5fd9-4b6d-8836-b7200c741711}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK TestSignalDutyCycleRecorder EXTENDS TcUnit.FB_TestSuite
 VAR_INPUT

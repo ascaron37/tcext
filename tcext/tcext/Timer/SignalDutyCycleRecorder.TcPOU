@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
   <POU Name="SignalDutyCycleRecorder" Id="{48bf5ea2-5b03-4893-b84f-88aefd604703}" SpecialFunc="None">
     <Declaration><![CDATA[(*
 Der Soll-Tastgrad in Prozent gibt das Verhaeltnis der Sensorzustaende An zu Aus waehrend einer Aufnahme an.

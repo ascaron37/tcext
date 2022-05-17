@@ -54,21 +54,5 @@ END_IF]]></ST>
         </Implementation>
       </Set>
     </Property>
-    <LineIds Name="LockingRelay">
-      <LineId Id="9" Count="0" />
-    </LineIds>
-    <LineIds Name="LockingRelay.clk.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="1" />
-      <LineId Id="8" Count="1" />
-      <LineId Id="7" Count="0" />
-    </LineIds>
-    <LineIds Name="LockingRelay.q.Get">
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="LockingRelay.reset.Set">
-      <LineId Id="2" Count="0" />
-      <LineId Id="5" Count="1" />
-    </LineIds>
   </POU>
 </TcPlcObject>
